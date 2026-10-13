@@ -283,8 +283,9 @@ func (t *TerminalPane) String() string {
 			Render(strings.Join(lines, ""))
 	}
 
-	// Normal mode: show captured content
-	lines := strings.Split(content, "\n")
+	// Normal mode: show captured content. capture-pane ends every row with \n; without
+	// trimming, a full pane is height+1 lines and the top row (a fresh shell's prompt) is cut.
+	lines := strings.Split(strings.TrimRight(content, "\n"), "\n")
 
 	if height > 0 {
 		if len(lines) > height {

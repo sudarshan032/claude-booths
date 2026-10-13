@@ -373,3 +373,12 @@ func TestTerminalCloseForInstance(t *testing.T) {
 	require.Len(t, tp.sessions, 1, "non-existent close should not affect existing sessions")
 	tp.mu.Unlock()
 }
+
+func TestTerminalPaneKeepsTopRowOfFullPane(t *testing.T) {
+	p := NewTerminalPane()
+	p.SetSize(40, 3)
+	p.content = "prompt %\n\n\n" // what capture-pane returns for a fresh 3-row shell
+	if out := p.String(); !strings.Contains(out, "prompt %") {
+		t.Fatalf("prompt row was cut off:\n%q", out)
+	}
+}
