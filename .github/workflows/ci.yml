@@ -58,7 +58,7 @@ jobs:
           if [ -n "$unformatted" ]; then echo "Not gofmt'd:"; echo "$unformatted"; exit 1; fi
       - name: go vet
         run: go vet ./...
-      - uses: golangci/golangci-lint-action@v8
+      - uses: golangci/golangci-lint-action@v9
         with:
           version: v2.5.0 # v1.x can't load code targeting go1.25; config in .golangci.yml
           args: --timeout=3m
