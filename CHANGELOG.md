@@ -11,6 +11,9 @@ versions: [SemVer](https://semver.org/). Claude Style forked from claude-squad v
   config as `theme`. Also styles each session's tmux status bar.
 
 ### Changed
+- Preview scrolling: mouse wheel / shift+↑↓ move 3 lines (was 1, and the first step only
+  entered scroll mode), a `SCROLL nn%` header shows you're looking at history and how to get
+  back (Esc, or scroll past the bottom), and the menu shows the scroll key on every tab.
 - Rebranded from claude-squad: binary `claude-style`, config `~/.claude-style`, tmux prefix
   `claudestyle_`. First run migrates `~/.claude-squad` config/state and renames running sessions.
 - Branch picker lists branches checked out elsewhere greyed out and unselectable.

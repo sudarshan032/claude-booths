@@ -397,3 +397,50 @@ func TestPreviewShowsLastRowOfFullPane(t *testing.T) {
 		t.Fatalf("last row lost:\n%q", out)
 	}
 }
+
+// Scroll mode: the first step already moves up (not just "enter mode"), a header says how
+// to get back, and scrolling past the bottom returns to the live preview.
+func TestPreviewScrollModeUX(t *testing.T) {
+	lines := make([]string, 200)
+	for i := range lines {
+		lines[i] = fmt.Sprintf("line %03d", i)
+	}
+	full := strings.Join(lines, "\n") + "\n\n\n" // trailing empty screen rows, as tmux returns
+	sessionCreated := false
+	cmdExec := cmd_test.MockCmdExec{
+		RunFunc: func(cmd *exec.Cmd) error {
+			s := cmd.String()
+			if strings.Contains(s, "has-session") && !sessionCreated {
+				return fmt.Errorf("no session")
+			}
+			if strings.Contains(s, "new-session") {
+				sessionCreated = true
+			}
+			return nil
+		},
+		OutputFunc: func(cmd *exec.Cmd) ([]byte, error) {
+			if strings.Contains(cmd.String(), "-S -") {
+				return []byte(full), nil
+			}
+			return []byte(strings.Join(lines[180:], "\n")), nil
+		},
+	}
+	setup := setupTestEnvironment(t, cmdExec)
+	defer setup.cleanupFn()
+
+	p := NewPreviewPane()
+	p.SetSize(80, 11)
+	require.NoError(t, p.UpdateContent(setup.instance))
+
+	require.NoError(t, p.ScrollUp(setup.instance))
+	out := p.String()
+	require.Contains(t, out, "SCROLL")
+	require.Contains(t, out, "Esc")
+	require.Contains(t, out, "line 196", "first step should already scroll %d lines up from the last line", scrollStep)
+	require.NotContains(t, out, "line 199")
+
+	for i := 0; i < 5 && p.isScrolling; i++ {
+		require.NoError(t, p.ScrollDown(setup.instance))
+	}
+	require.False(t, p.isScrolling, "scrolling past the bottom should return to the live preview")
+}

@@ -131,10 +131,8 @@ func (m *Menu) addInstanceOptions() {
 		actionGroup = append(actionGroup, keys.KeyCheckout)
 	}
 
-	// Navigation group (when in diff tab)
-	if m.activeTab == DiffTab || m.activeTab == TerminalTab {
-		actionGroup = append(actionGroup, keys.KeyShiftUp)
-	}
+	// Scroll hint (every tab can scroll; the mouse wheel works too)
+	actionGroup = append(actionGroup, keys.KeyShiftUp)
 
 	// System group
 	systemGroup := []keys.KeyName{keys.KeyTab, keys.KeyHelp, keys.KeyTheme, keys.KeyQuit}
