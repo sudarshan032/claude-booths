@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"claude-squad/cmd/cmd_test"
 
@@ -118,4 +119,47 @@ func TestRestoreAttachesWhenSessionExists(t *testing.T) {
 	require.NoError(t, session.Restore())
 	require.Len(t, ptyFactory.cmds, 1)
 	require.Contains(t, ptyFactory.cmds[0].String(), "attach-session")
+}
+
+// While the pump sees no output, CapturePaneContent serves the cached capture instead of
+// spawning tmux; any output (or the pump dying) makes it capture again.
+func TestCapturePaneContentStreamsInsteadOfPolling(t *testing.T) {
+	captures := 0
+	cmdExec := cmd_test.MockCmdExec{
+		RunFunc: func(cmd *exec.Cmd) error { return nil },
+		OutputFunc: func(cmd *exec.Cmd) ([]byte, error) {
+			captures++
+			return []byte(fmt.Sprintf("screen %d", captures)), nil
+		},
+	}
+	session := NewTmuxSessionWithDeps("stream", "program", NewMockPtyFactory(t), cmdExec)
+	r, w, err := os.Pipe()
+	require.NoError(t, err)
+	session.startPump(r)
+
+	waitFor := func(cond func() bool) {
+		deadline := time.Now().Add(2 * time.Second)
+		for !cond() && time.Now().Before(deadline) {
+			time.Sleep(5 * time.Millisecond)
+		}
+	}
+
+	got, _ := session.CapturePaneContent()
+	require.Equal(t, "screen 1", got)
+	for i := 0; i < 5; i++ {
+		got, _ = session.CapturePaneContent()
+	}
+	require.Equal(t, "screen 1", got, "idle pane must come from cache")
+	require.Equal(t, 1, captures)
+
+	_, _ = w.Write([]byte("x"))
+	waitFor(session.dirty.Load)
+	got, _ = session.CapturePaneContent()
+	require.Equal(t, "screen 2", got, "output must trigger a fresh capture")
+
+	_ = w.Close() // pump exits: no streaming, so every call captures again
+	waitFor(func() bool { return !session.streaming.Load() })
+	session.CapturePaneContent()
+	session.CapturePaneContent()
+	require.Equal(t, 4, captures)
 }

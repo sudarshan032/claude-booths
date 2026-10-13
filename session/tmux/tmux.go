@@ -14,6 +14,7 @@ import (
 	"regexp"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/creack/pty"
@@ -44,6 +45,17 @@ type TmuxSession struct {
 	ptmx *os.File
 	// monitor monitors the tmux pane content and sends signals to the UI when it's status changes
 	monitor *statusMonitor
+
+	// Output streaming. tmux pushes every screen change to the client running in ptmx, so a
+	// single pump goroutine reads it: any output marks the pane dirty (and is forwarded to
+	// stdout while attached). CapturePaneContent only runs `tmux capture-pane` when dirty,
+	// so idle sessions cost no subprocesses instead of ~12 per second.
+	pumpDone  chan struct{} // closed when the pump for the current ptmx exits
+	streaming atomic.Bool   // a pump is running, so dirty is trustworthy
+	dirty     atomic.Bool   // output arrived since the last capture
+	attached  atomic.Bool   // forward pump output to stdout
+	cacheMu   sync.Mutex
+	cache     *string // last capture-pane result
 
 	// Initialized by Attach
 	// Deinitilaized by Detach
@@ -198,7 +210,33 @@ func (t *TmuxSession) Restore() error {
 	}
 	t.ptmx = ptmx
 	t.monitor = newStatusMonitor()
+	t.startPump(ptmx)
 	return nil
+}
+
+// startPump makes a goroutine the only reader of ptmx (see the streaming fields).
+func (t *TmuxSession) startPump(ptmx *os.File) {
+	done := make(chan struct{})
+	t.pumpDone = done
+	t.dirty.Store(true)
+	t.streaming.Store(true)
+	go func() {
+		defer close(done)
+		defer t.streaming.Store(false)
+		buf := make([]byte, 32*1024)
+		for {
+			n, err := ptmx.Read(buf)
+			if n > 0 {
+				t.dirty.Store(true)
+				if t.attached.Load() {
+					_, _ = os.Stdout.Write(buf[:n])
+				}
+			}
+			if err != nil {
+				return
+			}
+		}
+	}()
 }
 
 type statusMonitor struct {
@@ -273,15 +311,17 @@ func (t *TmuxSession) Attach() (chan struct{}, error) {
 	t.wg.Add(1)
 	t.ctx, t.cancel = context.WithCancel(context.Background())
 
-	// The first goroutine should terminate when the ptmx is closed. We use the
-	// waitgroup to wait for it to finish.
+	// The pump forwards ptmx output to stdout while attached. The first goroutine
+	// terminates when that pump does (ptmx closed). We use the waitgroup to wait for it.
 	// The 2nd one returns when you press escape to Detach. It doesn't need to be
 	// in the waitgroup because is the goroutine doing the Detaching; it waits for
 	// all the other ones.
+	pumpDone := t.pumpDone
+	t.attached.Store(true)
 	go func() {
 		defer t.wg.Done()
-		_, _ = io.Copy(os.Stdout, t.ptmx)
-		// When io.Copy returns, it means the connection was closed
+		<-pumpDone
+		// When the pump returns, it means the connection was closed
 		// This could be due to normal detach or Ctrl-D
 		// Check if the context is done to determine if it was a normal detach
 		select {
@@ -353,6 +393,7 @@ func (t *TmuxSession) DetachSafely() error {
 	var errs []error
 
 	// Close the attached pty session.
+	t.attached.Store(false)
 	if t.ptmx != nil {
 		if err := t.ptmx.Close(); err != nil {
 			errs = append(errs, fmt.Errorf("error closing attach pty session: %w", err))
@@ -398,7 +439,11 @@ func (t *TmuxSession) Detach() {
 	}()
 
 	// Close the attached pty session.
+	t.attached.Store(false)
 	err := t.ptmx.Close()
+	if pumpDone := t.pumpDone; pumpDone != nil {
+		<-pumpDone // the old pump must be gone before Restore starts the next one
+	}
 	if err != nil {
 		// This is a fatal error. We can't detach if we can't close the PTY. It's better to just panic and have the
 		// user re-invoke the program than to ruin their terminal pane.
@@ -474,13 +519,27 @@ func (t *TmuxSession) DoesSessionExist() bool {
 
 // CapturePaneContent captures the content of the tmux pane
 func (t *TmuxSession) CapturePaneContent() (string, error) {
+	// Nothing streamed since the last capture: the pane is unchanged.
+	if t.streaming.Load() && !t.dirty.Swap(false) {
+		t.cacheMu.Lock()
+		cached := t.cache
+		t.cacheMu.Unlock()
+		if cached != nil {
+			return *cached, nil
+		}
+	}
 	// Add -e flag to preserve escape sequences (ANSI color codes)
 	cmd := exec.Command("tmux", "capture-pane", "-p", "-e", "-J", "-t", t.sanitizedName)
 	output, err := t.cmdExec.Output(cmd)
 	if err != nil {
+		t.dirty.Store(true) // retry next time
 		return "", fmt.Errorf("error capturing pane content: %v", err)
 	}
-	return string(output), nil
+	content := string(output)
+	t.cacheMu.Lock()
+	t.cache = &content
+	t.cacheMu.Unlock()
+	return content, nil
 }
 
 // CapturePaneContentWithOptions captures the pane content with additional options
