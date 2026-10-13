@@ -182,3 +182,26 @@ func TestDetachKeyIndex(t *testing.T) {
 		}
 	}
 }
+
+// Regression: closing a pty master doesn't unblock a pending Read on macOS, so detaching from
+// an idle session (no output) hung forever waiting for the pump. stopClient must kill the
+// client so the pump ends promptly.
+func TestStopClientEndsPumpOfIdleSession(t *testing.T) {
+	client := exec.Command("sleep", "30") // stands in for an idle `tmux attach-session`
+	ptmx, err := MakePtyFactory().Start(client)
+	require.NoError(t, err)
+	session := NewTmuxSessionWithDeps("idle", "program", NewMockPtyFactory(t), cmd_test.MockCmdExec{})
+	session.ptmx, session.client = ptmx, client
+	session.startPump(ptmx)
+	time.Sleep(100 * time.Millisecond) // let the pump block in Read
+
+	start := time.Now()
+	require.NoError(t, session.stopClient())
+	select {
+	case <-session.pumpDone:
+	default:
+		t.Fatal("pump still running after stopClient")
+	}
+	require.Less(t, time.Since(start), 2*time.Second, "stopClient waited for its timeout instead of ending the pump")
+	require.False(t, session.streaming.Load())
+}

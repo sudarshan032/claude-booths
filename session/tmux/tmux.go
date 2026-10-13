@@ -43,6 +43,8 @@ type TmuxSession struct {
 	// stdout dimensions of the tmux pane. On detach, we close it and set a new one.
 	// This should never be nil.
 	ptmx *os.File
+	// client is the `tmux attach-session` process running in ptmx.
+	client *exec.Cmd
 	// monitor monitors the tmux pane content and sends signals to the UI when it's status changes
 	monitor *statusMonitor
 
@@ -51,6 +53,7 @@ type TmuxSession struct {
 	// stdout while attached). CapturePaneContent only runs `tmux capture-pane` when dirty,
 	// so idle sessions cost no subprocesses instead of ~12 per second.
 	pumpDone  chan struct{} // closed when the pump for the current ptmx exits
+	pumpGen   atomic.Uint64 // which pump is current; a stale one must not touch streaming
 	streaming atomic.Bool   // a pump is running, so dirty is trustworthy
 	dirty     atomic.Bool   // output arrived since the last capture
 	attached  atomic.Bool   // forward pump output to stdout
@@ -237,11 +240,13 @@ func (t *TmuxSession) Restore() error {
 		return ErrSessionNotFound
 	}
 
-	ptmx, err := t.ptyFactory.Start(exec.Command("tmux", "attach-session", "-t", t.sanitizedName))
+	client := exec.Command("tmux", "attach-session", "-t", t.sanitizedName)
+	ptmx, err := t.ptyFactory.Start(client)
 	if err != nil {
 		return fmt.Errorf("error opening PTY: %w", err)
 	}
 	t.ptmx = ptmx
+	t.client = client
 	t.monitor = newStatusMonitor()
 	t.startPump(ptmx)
 	return nil
@@ -251,11 +256,16 @@ func (t *TmuxSession) Restore() error {
 func (t *TmuxSession) startPump(ptmx *os.File) {
 	done := make(chan struct{})
 	t.pumpDone = done
+	gen := t.pumpGen.Add(1)
 	t.dirty.Store(true)
 	t.streaming.Store(true)
 	go func() {
 		defer close(done)
-		defer t.streaming.Store(false)
+		defer func() {
+			if t.pumpGen.Load() == gen {
+				t.streaming.Store(false)
+			}
+		}()
 		buf := make([]byte, 32*1024)
 		for {
 			n, err := ptmx.Read(buf)
@@ -442,6 +452,31 @@ func restoreTerminalModes() {
 	_, _ = os.Stdout.WriteString("\x1b[?25l\x1b[?1004l")
 }
 
+// stopClient ends the tmux client running in ptmx and waits for its pump to exit.
+// Closing a pty master on macOS does not interrupt a Read blocked on it, so for an idle
+// session (no output pending) the pump would wait forever and detaching would hang.
+// Killing the client hangs up the pty, which ends the Read.
+func (t *TmuxSession) stopClient() error {
+	t.attached.Store(false)
+	if c := t.client; c != nil && c.Process != nil {
+		_ = c.Process.Kill()
+		go func() { _ = c.Wait() }() // reap it
+	}
+	t.client = nil
+	var err error
+	if t.ptmx != nil {
+		err = t.ptmx.Close()
+	}
+	if done := t.pumpDone; done != nil {
+		select {
+		case <-done:
+		case <-time.After(3 * time.Second):
+			log.WarningLog.Printf("output pump for %s did not stop; continuing", t.sanitizedName)
+		}
+	}
+	return err
+}
+
 // DetachSafely disconnects from the current tmux session without panicking
 func (t *TmuxSession) DetachSafely() error {
 	// Only detach if we're actually attached
@@ -452,13 +487,10 @@ func (t *TmuxSession) DetachSafely() error {
 	var errs []error
 
 	// Close the attached pty session.
-	t.attached.Store(false)
-	if t.ptmx != nil {
-		if err := t.ptmx.Close(); err != nil {
-			errs = append(errs, fmt.Errorf("error closing attach pty session: %w", err))
-		}
-		t.ptmx = nil
+	if err := t.stopClient(); err != nil {
+		errs = append(errs, fmt.Errorf("error closing attach pty session: %w", err))
 	}
+	t.ptmx = nil
 
 	// Clean up attach state
 	if t.attachCh != nil {
@@ -499,12 +531,8 @@ func (t *TmuxSession) Detach() {
 		t.wg = nil
 	}()
 
-	// Close the attached pty session.
-	t.attached.Store(false)
-	err := t.ptmx.Close()
-	if pumpDone := t.pumpDone; pumpDone != nil {
-		<-pumpDone // the old pump must be gone before Restore starts the next one
-	}
+	// Close the attached pty session; the old pump must be gone before Restore starts the next one.
+	err := t.stopClient()
 	if err != nil {
 		// This is a fatal error. We can't detach if we can't close the PTY. It's better to just panic and have the
 		// user re-invoke the program than to ruin their terminal pane.
@@ -531,12 +559,10 @@ func (t *TmuxSession) Detach() {
 func (t *TmuxSession) Close() error {
 	var errs []error
 
-	if t.ptmx != nil {
-		if err := t.ptmx.Close(); err != nil {
-			errs = append(errs, fmt.Errorf("error closing PTY: %w", err))
-		}
-		t.ptmx = nil
+	if err := t.stopClient(); err != nil {
+		errs = append(errs, fmt.Errorf("error closing PTY: %w", err))
 	}
+	t.ptmx = nil
 
 	cmd := exec.Command("tmux", "kill-session", "-t", t.sanitizedName)
 	if err := t.cmdExec.Run(cmd); err != nil {

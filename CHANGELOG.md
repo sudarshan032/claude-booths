@@ -20,6 +20,8 @@ versions: [SemVer](https://semver.org/). Claude Style forked from claude-squad v
   (two idle sessions: 124 tmux processes per 10 s → 0).
 
 ### Fixed
+- Detaching (Ctrl+Q) from an idle session hung forever, leaving you stuck in full screen:
+  closing the PTY doesn't interrupt a blocked read on macOS, so the tmux client is now killed.
 - Ctrl+Q was ignored when it arrived in the same read as other input (typed quickly after
   other keys, or with a focus event); also accepts the CSI-u / modifyOtherKeys encodings.
 - After detaching, the terminal's cursor stayed visible over the TUI (green block in the
