@@ -19,6 +19,7 @@ Requires Go (version pinned by the `toolchain` line in `go.mod`), `tmux` and `gi
 | User-facing changes | `CHANGELOG.md` (`## Unreleased` until a release is cut) |
 | Config/state location | `config.GetConfigDir()` → `~/.claude-style` |
 | tmux session naming | `tmux.TmuxPrefix` (`claudestyle_`) |
+| Colors | `ui/theme` palettes only; styles are built in `theme.OnChange` hooks (no hard-coded colors elsewhere) |
 | CI | `.github/workflows/ci.yml` (test, lint, build); releases: `release.yml` + `.goreleaser.yaml` |
 
 ## Branches

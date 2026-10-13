@@ -24,6 +24,7 @@ const (
 	KeyResume
 	KeyPrompt // New key for entering a prompt
 	KeyHelp   // Key for showing help screen
+	KeyTheme  // Cycle through color themes
 
 	// Diff keybindings
 	KeyShiftUp
@@ -55,6 +56,7 @@ var GlobalKeyStringsMap = map[string]KeyName{
 	"r":          KeyResume,
 	"p":          KeySubmit,
 	"?":          KeyHelp,
+	"t":          KeyTheme,
 }
 
 // GlobalkeyBindings is a global, immutable map of KeyName tot keybinding.
@@ -90,6 +92,10 @@ var GlobalkeyBindings = map[KeyName]key.Binding{
 	KeyHelp: key.NewBinding(
 		key.WithKeys("?"),
 		key.WithHelp("?", "help"),
+	),
+	KeyTheme: key.NewBinding(
+		key.WithKeys("t"),
+		key.WithHelp("t", "theme"),
 	),
 	KeyQuit: key.NewBinding(
 		key.WithKeys("q"),

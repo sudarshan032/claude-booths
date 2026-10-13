@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 )
 
 const newBranchOption = "New branch (from HEAD)"
@@ -149,26 +148,6 @@ func (bp *BranchPicker) GetSelectedBranch() string {
 	}
 	return selected
 }
-
-var (
-	bpLabelStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("62")).
-			Bold(true)
-
-	bpFilterStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("7"))
-
-	bpSelectedStyle = lipgloss.NewStyle().
-			Background(lipgloss.Color("62")).
-			Foreground(lipgloss.Color("0"))
-
-	bpDimStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("240"))
-
-	bpInUseStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("238")).
-			Strikethrough(true)
-)
 
 // Render renders the branch picker.
 func (bp *BranchPicker) Render() string {

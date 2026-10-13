@@ -102,7 +102,7 @@ func PlaceOverlay(
 	// Handle shadow if enabled
 	if shadow {
 		// Define shadow style and character
-		shadowStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("#333333"))
+		shadowStyle := lipgloss.NewStyle().Foreground(shadowColor)
 		shadowChar := shadowStyle.Render("░")
 
 		// Create shadow string with same dimensions as foreground

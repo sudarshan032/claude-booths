@@ -72,6 +72,8 @@ type Config struct {
 	BranchPrefix string `json:"branch_prefix"`
 	// Profiles is a list of named program profiles.
 	Profiles []Profile `json:"profiles,omitempty"`
+	// Theme is the color theme name (see `claude-style themes`); empty means the default.
+	Theme string `json:"theme,omitempty"`
 }
 
 // GetProgram returns the program to run. If Profiles is non-empty and

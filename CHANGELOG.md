@@ -5,6 +5,11 @@ versions: [SemVer](https://semver.org/). Claude Style forked from claude-squad v
 
 ## Unreleased
 
+### Added
+- Color themes: `claude-style` (default), `monokai`, `vscode`, `ocean-green`, `dracula`, `nord`,
+  `gruvbox`, `solarized`. Cycle with `t` in the app or use `claude-style themes [name]`; saved in
+  config as `theme`. Also styles each session's tmux status bar.
+
 ### Changed
 - Rebranded from claude-squad: binary `claude-style`, config `~/.claude-style`, tmux prefix
   `claudestyle_`. First run migrates `~/.claude-squad` config/state and renames running sessions.

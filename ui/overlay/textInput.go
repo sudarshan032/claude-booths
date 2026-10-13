@@ -2,6 +2,7 @@ package overlay
 
 import (
 	"claude-style/config"
+	"claude-style/ui/theme"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/textarea"
@@ -9,27 +10,36 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
+var tiStyle, tiTitleStyle, tiButtonStyle, tiFocusedButtonStyle, tiDividerStyle lipgloss.Style
+
+// Overlay styles shared by the text input, branch picker and profile picker.
 var (
-	tiStyle = lipgloss.NewStyle().
-		Border(lipgloss.RoundedBorder()).
-		BorderForeground(lipgloss.Color("62")).
-		Padding(1, 2)
-
-	tiTitleStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("62")).
-			Bold(true).
-			MarginBottom(1)
-
-	tiButtonStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("7"))
-
-	tiFocusedButtonStyle = lipgloss.NewStyle().
-				Background(lipgloss.Color("62")).
-				Foreground(lipgloss.Color("0"))
-
-	tiDividerStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("240"))
+	bpLabelStyle, bpFilterStyle, bpSelectedStyle, bpDimStyle, bpInUseStyle lipgloss.Style
+	ppLabelStyle, ppSelectedStyle, ppDimStyle                              lipgloss.Style
+	textOverlayBorder, confirmBorder, shadowColor                          lipgloss.TerminalColor
 )
+
+func init() {
+	theme.OnChange(func(p theme.Palette) {
+		tiStyle = lipgloss.NewStyle().Border(lipgloss.RoundedBorder()).BorderForeground(p.Accent).Padding(1, 2)
+		tiTitleStyle = lipgloss.NewStyle().Foreground(p.Accent).Bold(true).MarginBottom(1)
+		tiButtonStyle = lipgloss.NewStyle().Foreground(p.Text)
+		tiFocusedButtonStyle = lipgloss.NewStyle().Background(p.Accent).Foreground(p.OnAccent)
+		tiDividerStyle = lipgloss.NewStyle().Foreground(p.Faint)
+
+		bpLabelStyle = lipgloss.NewStyle().Foreground(p.Accent).Bold(true)
+		bpFilterStyle = lipgloss.NewStyle().Foreground(p.Text)
+		bpSelectedStyle = lipgloss.NewStyle().Background(p.Accent).Foreground(p.OnAccent)
+		bpDimStyle = lipgloss.NewStyle().Foreground(p.Muted)
+		bpInUseStyle = lipgloss.NewStyle().Foreground(p.Faint).Strikethrough(true)
+
+		ppLabelStyle = bpLabelStyle
+		ppSelectedStyle = bpSelectedStyle
+		ppDimStyle = bpDimStyle
+
+		textOverlayBorder, confirmBorder, shadowColor = p.Accent, p.Danger, p.Faint
+	})
+}
 
 // TextInputOverlay represents a text input overlay with state management.
 type TextInputOverlay struct {

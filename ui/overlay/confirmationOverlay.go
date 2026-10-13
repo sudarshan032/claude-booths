@@ -22,7 +22,7 @@ type ConfirmationOverlay struct {
 	// Custom cancel key (defaults to 'n')
 	CancelKey string
 	// Custom styling options
-	borderColor lipgloss.Color
+	borderColor lipgloss.TerminalColor
 }
 
 // NewConfirmationOverlay creates a new confirmation dialog overlay with the given message
@@ -33,7 +33,7 @@ func NewConfirmationOverlay(message string) *ConfirmationOverlay {
 		width:       50, // Default width
 		ConfirmKey:  "y",
 		CancelKey:   "n",
-		borderColor: lipgloss.Color("#de613e"), // Red color for confirmations
+		borderColor: confirmBorder,
 	}
 }
 

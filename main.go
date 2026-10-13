@@ -9,12 +9,14 @@ import (
 	"claude-style/session"
 	"claude-style/session/git"
 	"claude-style/session/tmux"
+	"claude-style/ui/theme"
 	"context"
 	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
 
+	"github.com/charmbracelet/lipgloss"
 	"github.com/spf13/cobra"
 )
 
@@ -136,6 +138,44 @@ var (
 		},
 	}
 
+	themesCmd = &cobra.Command{
+		Use:   "themes [name]",
+		Short: "List color themes, or set one (also: press t in the app)",
+		Args:  cobra.MaximumNArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			log.Initialize(false)
+			defer log.Close()
+			cfg := config.LoadConfig()
+			if len(args) == 1 {
+				if err := theme.Set(args[0]); err != nil {
+					return err
+				}
+				cfg.Theme = theme.Current().Name
+				if err := config.SaveConfig(cfg); err != nil {
+					return err
+				}
+				fmt.Printf("theme set to %s\n", cfg.Theme)
+				return nil
+			}
+			_ = theme.Set(cfg.Theme)
+			active := theme.Current().Name
+			for _, name := range theme.Names() {
+				_ = theme.Set(name)
+				p := theme.Current()
+				swatch := ""
+				for _, c := range []lipgloss.TerminalColor{p.Accent, p.Success, p.Danger, p.Warning, p.Info, p.Menu} {
+					swatch += lipgloss.NewStyle().Foreground(c).Render("██")
+				}
+				mark := "  "
+				if name == active {
+					mark = "* "
+				}
+				fmt.Printf("%s%-14s %s\n", mark, name, swatch)
+			}
+			return nil
+		},
+	}
+
 	versionCmd = &cobra.Command{
 		Use:   "version",
 		Short: "Print the version number",
@@ -163,6 +203,7 @@ func init() {
 	rootCmd.AddCommand(debugCmd)
 	rootCmd.AddCommand(versionCmd)
 	rootCmd.AddCommand(resetCmd)
+	rootCmd.AddCommand(themesCmd)
 }
 
 func main() {

@@ -5,6 +5,7 @@ import (
 	"claude-style/session"
 	"claude-style/ui"
 	"claude-style/ui/overlay"
+	"claude-style/ui/theme"
 	"fmt"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -56,6 +57,7 @@ func (h helpTypeGeneral) toContent() string {
 		headerStyle.Render("Other:"),
 		keyStyle.Render("tab")+descStyle.Render("       - Switch between preview, diff, and terminal tabs"),
 		keyStyle.Render("shift-↓/↑")+descStyle.Render(" - Scroll in preview/diff/terminal view"),
+		keyStyle.Render("t")+descStyle.Render("         - Cycle color theme (saved to config)"),
 		keyStyle.Render("q")+descStyle.Render("         - Quit the application"),
 	)
 	return content
@@ -120,12 +122,16 @@ func (h helpTypeInstanceCheckout) mask() uint32 {
 	return 1 << 3
 }
 
-var (
-	titleStyle  = lipgloss.NewStyle().Bold(true).Underline(true).Foreground(lipgloss.Color("#7D56F4"))
-	headerStyle = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#36CFC9"))
-	keyStyle    = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#FFCC00"))
-	descStyle   = lipgloss.NewStyle().Foreground(lipgloss.Color("#FFFFFF"))
-)
+var titleStyle, headerStyle, keyStyle, descStyle lipgloss.Style
+
+func init() {
+	theme.OnChange(func(p theme.Palette) {
+		titleStyle = lipgloss.NewStyle().Bold(true).Underline(true).Foreground(p.Accent)
+		headerStyle = lipgloss.NewStyle().Bold(true).Foreground(p.Info)
+		keyStyle = lipgloss.NewStyle().Bold(true).Foreground(p.Warning)
+		descStyle = lipgloss.NewStyle().Foreground(p.Text)
+	})
+}
 
 // showHelpScreen displays the help screen overlay if it hasn't been shown before
 func (m *home) showHelpScreen(helpType helpText, onDismiss func()) (tea.Model, tea.Cmd) {
