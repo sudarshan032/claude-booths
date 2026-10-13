@@ -1,14 +1,14 @@
 package main
 
 import (
-	"claude-squad/app"
-	cmd2 "claude-squad/cmd"
-	"claude-squad/config"
-	"claude-squad/daemon"
-	"claude-squad/log"
-	"claude-squad/session"
-	"claude-squad/session/git"
-	"claude-squad/session/tmux"
+	"claude-style/app"
+	cmd2 "claude-style/cmd"
+	"claude-style/config"
+	"claude-style/daemon"
+	"claude-style/log"
+	"claude-style/session"
+	"claude-style/session/git"
+	"claude-style/session/tmux"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -25,8 +25,8 @@ var (
 	daemonFlag  bool
 	binName     string
 	rootCmd     = &cobra.Command{
-		Use:   "claude-squad",
-		Short: "Claude Squad - Manage multiple AI agents like Claude Code, Aider, Codex, and Amp.",
+		Use:   "claude-style",
+		Short: "Claude Style - Manage multiple AI agents like Claude Code, Aider, Codex, and Amp.",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := context.Background()
 			log.Initialize(daemonFlag)
@@ -73,6 +73,7 @@ var (
 				log.ErrorLog.Printf("failed to stop daemon: %v", err)
 			}
 
+			tmux.MigrateLegacySessions()
 			return app.Run(ctx, program, autoYes)
 		},
 	}
@@ -140,7 +141,7 @@ var (
 		Short: "Print the version number",
 		Run: func(cmd *cobra.Command, args []string) {
 			fmt.Printf("%s version %s\n", binName, version)
-			fmt.Printf("https://github.com/smtg-ai/claude-squad/releases/tag/v%s\n", version)
+			fmt.Printf("https://github.com/sudarshan032/claude-style/releases/tag/v%s\n", version)
 		},
 	}
 )

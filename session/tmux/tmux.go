@@ -2,8 +2,8 @@ package tmux
 
 import (
 	"bytes"
-	"claude-squad/cmd"
-	"claude-squad/log"
+	"claude-style/cmd"
+	"claude-style/log"
 	"context"
 	"crypto/sha256"
 	"errors"
@@ -69,7 +69,7 @@ type TmuxSession struct {
 	wg     *sync.WaitGroup
 }
 
-const TmuxPrefix = "claudesquad_"
+const TmuxPrefix = "claudestyle_"
 
 // ErrSessionNotFound is returned when the tmux session backing an instance is gone, which
 // happens whenever the tmux server dies (reboot, crash, `tmux kill-server`).
@@ -77,10 +77,26 @@ var ErrSessionNotFound = errors.New("tmux session no longer exists")
 
 var whiteSpaceRegex = regexp.MustCompile(`\s+`)
 
-func toClaudeSquadTmuxName(str string) string {
+func toClaudeStyleTmuxName(str string) string {
 	str = whiteSpaceRegex.ReplaceAllString(str, "")
 	str = strings.ReplaceAll(str, ".", "_") // tmux replaces all . with _
 	return fmt.Sprintf("%s%s", TmuxPrefix, str)
+}
+
+// MigrateLegacySessions renames tmux sessions started by claude-squad (claudesquad_ prefix)
+// so that instances migrated from its state.json find their running sessions.
+func MigrateLegacySessions() {
+	out, err := exec.Command("tmux", "list-sessions", "-F", "#{session_name}").Output()
+	if err != nil {
+		return // no tmux server
+	}
+	for _, name := range strings.Fields(string(out)) {
+		if rest, ok := strings.CutPrefix(name, "claudesquad_"); ok {
+			if err := exec.Command("tmux", "rename-session", "-t", "="+name, TmuxPrefix+rest).Run(); err != nil {
+				log.WarningLog.Printf("could not rename legacy tmux session %s: %v", name, err)
+			}
+		}
+	}
 }
 
 // NewTmuxSession creates a new TmuxSession with the given name and program.
@@ -95,7 +111,7 @@ func NewTmuxSessionWithDeps(name string, program string, ptyFactory PtyFactory, 
 
 func newTmuxSession(name string, program string, ptyFactory PtyFactory, cmdExec cmd.Executor) *TmuxSession {
 	return &TmuxSession{
-		sanitizedName: toClaudeSquadTmuxName(name),
+		sanitizedName: toClaudeStyleTmuxName(name),
 		program:       program,
 		ptyFactory:    ptyFactory,
 		cmdExec:       cmdExec,

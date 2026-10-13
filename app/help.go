@@ -1,10 +1,10 @@
 package app
 
 import (
-	"claude-squad/log"
-	"claude-squad/session"
-	"claude-squad/ui"
-	"claude-squad/ui/overlay"
+	"claude-style/log"
+	"claude-style/session"
+	"claude-style/ui"
+	"claude-style/ui/overlay"
 	"fmt"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -35,7 +35,7 @@ func helpStart(instance *session.Instance) helpText {
 
 func (h helpTypeGeneral) toContent() string {
 	content := lipgloss.JoinVertical(lipgloss.Left,
-		titleStyle.Render("Claude Squad"),
+		titleStyle.Render("Claude Style"),
 		"",
 		"A terminal UI that manages multiple Claude Code (and other local agents) in separate workspaces.",
 		"",

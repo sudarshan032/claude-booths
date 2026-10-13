@@ -1,9 +1,9 @@
-# Claude Squad [![CI](https://github.com/smtg-ai/claude-squad/actions/workflows/build.yml/badge.svg)](https://github.com/smtg-ai/claude-squad/actions/workflows/build.yml) [![GitHub Release](https://img.shields.io/github/v/release/smtg-ai/claude-squad)](https://github.com/smtg-ai/claude-squad/releases/latest)
+# Claude Style [![CI](https://github.com/sudarshan032/claude-style/actions/workflows/build.yml/badge.svg)](https://github.com/sudarshan032/claude-style/actions/workflows/build.yml) [![GitHub Release](https://img.shields.io/github/v/release/sudarshan032/claude-style)](https://github.com/sudarshan032/claude-style/releases/latest)
 
-[Claude Squad](https://smtg-ai.github.io/claude-squad/) is a terminal app that manages multiple [Claude Code](https://github.com/anthropics/claude-code), [Codex](https://github.com/openai/codex), [Gemini](https://github.com/google-gemini/gemini-cli) (and other local agents including [Aider](https://github.com/Aider-AI/aider)) in separate workspaces, allowing you to work on multiple tasks simultaneously.
+Claude Style is a terminal app that manages multiple [Claude Code](https://github.com/anthropics/claude-code), [Codex](https://github.com/openai/codex), [Gemini](https://github.com/google-gemini/gemini-cli) (and other local agents including [Aider](https://github.com/Aider-AI/aider)) in separate workspaces, allowing you to work on multiple tasks simultaneously.
 
 
-![Claude Squad Screenshot](assets/screenshot.png)
+![Claude Style Screenshot](assets/screenshot.png)
 
 ### Highlights
 - Complete tasks in the background (including yolo / auto-accept mode!)
@@ -11,38 +11,34 @@
 - Review changes before applying them, checkout changes before pushing them
 - Each task gets its own isolated git workspace, so no conflicts
 
-<br />
+### What's different from claude-squad
 
-https://github.com/user-attachments/assets/aef18253-e58f-4525-9032-f5a3d66c975a
+Claude Style is a fork of [smtg-ai/claude-squad](https://github.com/smtg-ai/claude-squad) with:
 
-<br />
+- **Streamed previews**: pane changes are pushed by tmux instead of polled with `capture-pane`
+  ~12 times a second per session, so idle sessions spawn no processes at all.
+- **No lost input while attached**: the TUI stops reading stdin during attach, so the first
+  keystroke or the start of a paste is never swallowed.
+- **Fetch never hangs**: background `git fetch` can't prompt for credentials on your TTY.
+- **Branch picker knows what's in use**: branches checked out by another session (or your main
+  folder) are shown greyed out and can't be picked, instead of the new session silently vanishing.
+- **Prompt delivery waits for the agent to boot** (slow SessionStart hooks no longer eat the Enter).
+- **Preview and Terminal tabs show the full pane** (no lost top/bottom row).
+- Migrates `~/.claude-squad` config/state and running sessions on first run.
 
 ### Installation
 
-Both Homebrew and manual installation will install Claude Squad as `cs` on your system.
-
-#### Homebrew
-
 ```bash
-brew install claude-squad
-ln -s "$(brew --prefix)/bin/claude-squad" "$(brew --prefix)/bin/cs"
+curl -fsSL https://raw.githubusercontent.com/sudarshan032/claude-style/main/install.sh | bash
 ```
 
-#### Manual
-
-Claude Squad can also be installed by running the following command:
+This puts the `claude-style` binary in `~/.local/bin`. To use a different name (e.g. `cs`):
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/smtg-ai/claude-squad/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/sudarshan032/claude-style/main/install.sh | bash -s -- --name cs
 ```
 
-This puts the `cs` binary in `~/.local/bin`.
-
-To use a custom name for the binary:
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/smtg-ai/claude-squad/main/install.sh | bash -s -- --name <your-binary-name>
-```
+Or build from source (Go 1.23+): `go build -o ~/.local/bin/claude-style .`
 
 ### Prerequisites
 
@@ -53,38 +49,38 @@ curl -fsSL https://raw.githubusercontent.com/smtg-ai/claude-squad/main/install.s
 
 ```
 Usage:
-  cs [flags]
-  cs [command]
+  claude-style [flags]
+  claude-style [command]
 
 Available Commands:
   completion  Generate the autocompletion script for the specified shell
   debug       Print debug information like config paths
   help        Help about any command
   reset       Reset all stored instances
-  version     Print the version number of claude-squad
+  version     Print the version number of claude-style
 
 Flags:
   -y, --autoyes          [experimental] If enabled, all instances will automatically accept prompts for claude code & aider
-  -h, --help             help for claude-squad
+  -h, --help             help for claude-style
   -p, --program string   Program to run in new instances (e.g. 'aider --model ollama_chat/gemma3:1b')
 ```
 
 Run the application with:
 
 ```bash
-cs
+claude-style
 ```
 NOTE: The default program is `claude` and we recommend using the latest version.
 
 <br />
 
-<b>Using Claude Squad with other AI assistants:</b>
+<b>Using Claude Style with other AI assistants:</b>
 - For [Codex](https://github.com/openai/codex): Set your API key with `export OPENAI_API_KEY=<your_key>`
 - Launch with specific assistants:
-   - Codex: `cs -p "codex"`
-   - Aider: `cs -p "aider ..."`
-   - Gemini: `cs -p "gemini"`
-- Make this the default, by modifying the config file (locate with `cs debug`)
+   - Codex: `claude-style -p "codex"`
+   - Aider: `claude-style -p "aider ..."`
+   - Gemini: `claude-style -p "gemini"`
+- Make this the default, by modifying the config file (locate with `claude-style debug`)
 
 <br />
 
@@ -112,7 +108,7 @@ The menu at the bottom of the screen shows available commands:
 
 ### Configuration
 
-Claude Squad stores its configuration in `~/.claude-squad/config.json`. You can find the exact path by running `cs debug`.
+Claude Style stores its configuration in `~/.claude-style/config.json`. You can find the exact path by running `claude-style debug`.
 
 #### Profiles
 
@@ -138,7 +134,7 @@ Each profile has two fields:
 | `name`    | Display name shown in the profile picker                 |
 | `program` | Shell command used to launch the agent for that profile  |
 
-If no profiles are defined, Claude Squad uses `default_program` directly as the launch command (the default is `claude`).
+If no profiles are defined, Claude Style uses `default_program` directly as the launch command (the default is `claude`).
 
 ### FAQs
 
@@ -155,8 +151,9 @@ underlying program (ex. `claude`) to the latest version.
 
 ### License
 
-[AGPL-3.0](LICENSE.md)
+[AGPL-3.0](LICENSE.md). Claude Style is a modified version of
+[claude-squad](https://github.com/smtg-ai/claude-squad) by smtg-ai, also AGPL-3.0; the original
+copyright and license are retained.
 
-### Star History
+"Claude" is a trademark of Anthropic. This project is not affiliated with or endorsed by Anthropic.
 
-[![Star History Chart](https://api.star-history.com/svg?repos=smtg-ai/claude-squad&type=Date)](https://www.star-history.com/#smtg-ai/claude-squad&Date)

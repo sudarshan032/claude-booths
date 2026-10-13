@@ -1,7 +1,7 @@
 package overlay
 
 import (
-	"claude-squad/config"
+	"claude-style/config"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/textarea"

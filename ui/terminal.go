@@ -1,9 +1,9 @@
 package ui
 
 import (
-	"claude-squad/log"
-	"claude-squad/session"
-	"claude-squad/session/tmux"
+	"claude-style/log"
+	"claude-style/session"
+	"claude-style/session/tmux"
 	"fmt"
 	"os"
 	"strings"

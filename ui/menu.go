@@ -1,10 +1,10 @@
 package ui
 
 import (
-	"claude-squad/keys"
+	"claude-style/keys"
 	"strings"
 
-	"claude-squad/session"
+	"claude-style/session"
 
 	"github.com/charmbracelet/lipgloss"
 )

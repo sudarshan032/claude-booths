@@ -1,9 +1,9 @@
 package session
 
 import (
-	"claude-squad/cmd/cmd_test"
-	"claude-squad/log"
-	"claude-squad/session/tmux"
+	"claude-style/cmd/cmd_test"
+	"claude-style/log"
+	"claude-style/session/tmux"
 	"fmt"
 	"os"
 	"os/exec"

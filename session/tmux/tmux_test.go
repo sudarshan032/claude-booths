@@ -1,7 +1,7 @@
 package tmux
 
 import (
-	cmd2 "claude-squad/cmd"
+	cmd2 "claude-style/cmd"
 	"fmt"
 	"math/rand"
 	"os"
@@ -11,7 +11,7 @@ import (
 	"testing"
 	"time"
 
-	"claude-squad/cmd/cmd_test"
+	"claude-style/cmd/cmd_test"
 
 	"github.com/stretchr/testify/require"
 )
@@ -73,9 +73,9 @@ func TestStartTmuxSession(t *testing.T) {
 	err := session.Start(workdir)
 	require.NoError(t, err)
 	require.Equal(t, 2, len(ptyFactory.cmds))
-	require.Equal(t, fmt.Sprintf("tmux new-session -d -s claudesquad_test-session -c %s claude", workdir),
+	require.Equal(t, fmt.Sprintf("tmux new-session -d -s claudestyle_test-session -c %s claude", workdir),
 		cmd2.ToString(ptyFactory.cmds[0]))
-	require.Equal(t, "tmux attach-session -t claudesquad_test-session",
+	require.Equal(t, "tmux attach-session -t claudestyle_test-session",
 		cmd2.ToString(ptyFactory.cmds[1]))
 
 	require.Equal(t, 2, len(ptyFactory.files))

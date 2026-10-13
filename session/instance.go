@@ -1,9 +1,9 @@
 package session
 
 import (
-	"claude-squad/log"
-	"claude-squad/session/git"
-	"claude-squad/session/tmux"
+	"claude-style/log"
+	"claude-style/session/git"
+	"claude-style/session/tmux"
 	"errors"
 	"path/filepath"
 
@@ -463,7 +463,7 @@ func (i *Instance) Pause() error {
 		log.ErrorLog.Print(err)
 	} else if dirty {
 		// Commit changes locally (without pushing to GitHub)
-		commitMsg := fmt.Sprintf("[claudesquad] update from '%s' on %s (paused)", i.Title, time.Now().Format(time.RFC822))
+		commitMsg := fmt.Sprintf("[claudestyle] update from '%s' on %s (paused)", i.Title, time.Now().Format(time.RFC822))
 		if err := i.gitWorktree.CommitChanges(commitMsg); err != nil {
 			errs = append(errs, fmt.Errorf("failed to commit changes: %w", err))
 			log.ErrorLog.Print(err)

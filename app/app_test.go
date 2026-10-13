@@ -1,11 +1,11 @@
 package app
 
 import (
-	"claude-squad/config"
-	"claude-squad/log"
-	"claude-squad/session"
-	"claude-squad/ui"
-	"claude-squad/ui/overlay"
+	"claude-style/config"
+	"claude-style/log"
+	"claude-style/session"
+	"claude-style/ui"
+	"claude-style/ui/overlay"
 	"context"
 	"fmt"
 	"os"

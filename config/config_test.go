@@ -1,7 +1,7 @@
 package config
 
 import (
-	"claude-squad/log"
+	"claude-style/log"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -118,7 +118,7 @@ func TestGetConfigDir(t *testing.T) {
 
 		assert.NoError(t, err)
 		assert.NotEmpty(t, configDir)
-		assert.True(t, strings.HasSuffix(configDir, ".claude-squad"))
+		assert.True(t, strings.HasSuffix(configDir, ".claude-style"))
 
 		// Verify it's an absolute path
 		assert.True(t, filepath.IsAbs(configDir))
@@ -145,7 +145,7 @@ func TestLoadConfig(t *testing.T) {
 	t.Run("loads valid config file", func(t *testing.T) {
 		// Create a temporary config directory
 		tempHome := t.TempDir()
-		configDir := filepath.Join(tempHome, ".claude-squad")
+		configDir := filepath.Join(tempHome, ".claude-style")
 		err := os.MkdirAll(configDir, 0755)
 		require.NoError(t, err)
 
@@ -177,7 +177,7 @@ func TestLoadConfig(t *testing.T) {
 	t.Run("returns default config on invalid JSON", func(t *testing.T) {
 		// Create a temporary config directory
 		tempHome := t.TempDir()
-		configDir := filepath.Join(tempHome, ".claude-squad")
+		configDir := filepath.Join(tempHome, ".claude-style")
 		err := os.MkdirAll(configDir, 0755)
 		require.NoError(t, err)
 
@@ -290,7 +290,7 @@ func TestSaveConfig(t *testing.T) {
 		assert.NoError(t, err)
 
 		// Verify the file was created
-		configDir := filepath.Join(tempHome, ".claude-squad")
+		configDir := filepath.Join(tempHome, ".claude-style")
 		configPath := filepath.Join(configDir, ConfigFileName)
 
 		assert.FileExists(t, configPath)
@@ -302,4 +302,27 @@ func TestSaveConfig(t *testing.T) {
 		assert.Equal(t, testConfig.DaemonPollInterval, loadedConfig.DaemonPollInterval)
 		assert.Equal(t, testConfig.BranchPrefix, loadedConfig.BranchPrefix)
 	})
+}
+
+func TestMigrateFromClaudeSquad(t *testing.T) {
+	home := t.TempDir()
+	oldDir, newDir := filepath.Join(home, ".claude-squad"), filepath.Join(home, ".claude-style")
+	require.NoError(t, os.MkdirAll(filepath.Join(oldDir, "worktrees"), 0755))
+	require.NoError(t, os.WriteFile(filepath.Join(oldDir, ConfigFileName), []byte(`{"branch_prefix":"x/"}`), 0644))
+	require.NoError(t, os.WriteFile(filepath.Join(oldDir, StateFileName), []byte(`{"instances":[]}`), 0644))
+
+	migrateFromClaudeSquad(oldDir, newDir)
+	got, err := os.ReadFile(filepath.Join(newDir, ConfigFileName))
+	require.NoError(t, err)
+	require.Equal(t, `{"branch_prefix":"x/"}`, string(got))
+	_, err = os.Stat(filepath.Join(newDir, StateFileName))
+	require.NoError(t, err)
+	_, err = os.Stat(filepath.Join(newDir, "worktrees"))
+	require.True(t, os.IsNotExist(err), "worktrees stay in the old dir")
+
+	// Never overwrites an existing claude-style dir.
+	require.NoError(t, os.WriteFile(filepath.Join(oldDir, ConfigFileName), []byte(`{}`), 0644))
+	migrateFromClaudeSquad(oldDir, newDir)
+	got, _ = os.ReadFile(filepath.Join(newDir, ConfigFileName))
+	require.Equal(t, `{"branch_prefix":"x/"}`, string(got))
 }

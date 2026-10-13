@@ -1,7 +1,7 @@
 package overlay
 
 import (
-	"claude-squad/config"
+	"claude-style/config"
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
