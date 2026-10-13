@@ -2,6 +2,7 @@ package ui
 
 import (
 	"claude-style/keys"
+	"claude-style/ui/theme"
 	"strings"
 
 	"claude-style/session"
@@ -9,28 +10,20 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-var keyStyle = lipgloss.NewStyle().Foreground(lipgloss.AdaptiveColor{
-	Light: "#655F5F",
-	Dark:  "#7F7A7A",
-})
+var keyStyle, descStyle, sepStyle, actionGroupStyle, menuStyle lipgloss.Style
 
-var descStyle = lipgloss.NewStyle().Foreground(lipgloss.AdaptiveColor{
-	Light: "#7A7474",
-	Dark:  "#9C9494",
-})
-
-var sepStyle = lipgloss.NewStyle().Foreground(lipgloss.AdaptiveColor{
-	Light: "#DDDADA",
-	Dark:  "#3C3C3C",
-})
-
-var actionGroupStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("99"))
+func init() {
+	theme.OnChange(func(p theme.Palette) {
+		keyStyle = lipgloss.NewStyle().Foreground(p.Muted)
+		descStyle = lipgloss.NewStyle().Foreground(p.Text)
+		sepStyle = lipgloss.NewStyle().Foreground(p.Faint)
+		actionGroupStyle = lipgloss.NewStyle().Foreground(p.Accent)
+		menuStyle = lipgloss.NewStyle().Foreground(p.Menu)
+	})
+}
 
 var separator = " • "
 var verticalSeparator = " │ "
-
-var menuStyle = lipgloss.NewStyle().
-	Foreground(lipgloss.Color("205"))
 
 // MenuState represents different states the menu can be in
 type MenuState int
@@ -53,7 +46,7 @@ type Menu struct {
 	keyDown keys.KeyName
 }
 
-var defaultMenuOptions = []keys.KeyName{keys.KeyNew, keys.KeyPrompt, keys.KeyHelp, keys.KeyQuit}
+var defaultMenuOptions = []keys.KeyName{keys.KeyNew, keys.KeyPrompt, keys.KeyHelp, keys.KeyTheme, keys.KeyQuit}
 var newInstanceMenuOptions = []keys.KeyName{keys.KeySubmitName}
 var promptMenuOptions = []keys.KeyName{keys.KeySubmitName}
 
@@ -144,7 +137,7 @@ func (m *Menu) addInstanceOptions() {
 	}
 
 	// System group
-	systemGroup := []keys.KeyName{keys.KeyTab, keys.KeyHelp, keys.KeyQuit}
+	systemGroup := []keys.KeyName{keys.KeyTab, keys.KeyHelp, keys.KeyTheme, keys.KeyQuit}
 
 	// Combine all groups
 	options = append(options, actionGroup...)

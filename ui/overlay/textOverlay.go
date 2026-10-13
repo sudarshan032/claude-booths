@@ -42,7 +42,7 @@ func (t *TextOverlay) Render(opts ...WhitespaceOption) string {
 	// Create styles
 	style := lipgloss.NewStyle().
 		Border(lipgloss.RoundedBorder()).
-		BorderForeground(lipgloss.Color("62")).
+		BorderForeground(textOverlayBorder).
 		Padding(1, 2).
 		Width(t.width)
 

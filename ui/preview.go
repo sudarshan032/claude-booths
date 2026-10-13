@@ -2,6 +2,7 @@ package ui
 
 import (
 	"claude-style/session"
+	"claude-style/ui/theme"
 	"fmt"
 	"strings"
 
@@ -9,8 +10,11 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-var previewPaneStyle = lipgloss.NewStyle().
-	Foreground(lipgloss.AdaptiveColor{Light: "#1a1a1a", Dark: "#dddddd"})
+var previewPaneStyle lipgloss.Style
+
+func init() {
+	theme.OnChange(func(p theme.Palette) { previewPaneStyle = lipgloss.NewStyle().Foreground(p.Text) })
+}
 
 type PreviewPane struct {
 	width  int
@@ -63,10 +67,7 @@ func (p *PreviewPane) UpdateContent(instance *session.Instance) error {
 			"Session is paused. Press 'r' to resume.",
 			"",
 			lipgloss.NewStyle().
-				Foreground(lipgloss.AdaptiveColor{
-					Light: "#FFD700",
-					Dark:  "#FFD700",
-				}).
+				Foreground(theme.Current().Warning).
 				Render(fmt.Sprintf(
 					"The instance can be checked out at '%s' (copied to your clipboard)",
 					instance.Branch,
@@ -88,7 +89,7 @@ func (p *PreviewPane) UpdateContent(instance *session.Instance) error {
 
 		// Set content in the viewport
 		footer := lipgloss.NewStyle().
-			Foreground(lipgloss.AdaptiveColor{Light: "#808080", Dark: "#808080"}).
+			Foreground(theme.Current().Muted).
 			Render("ESC to exit scroll mode")
 
 		p.viewport.SetContent(lipgloss.JoinVertical(lipgloss.Left, content, footer))
@@ -198,7 +199,7 @@ func (p *PreviewPane) ScrollUp(instance *session.Instance) error {
 
 		// Set content in the viewport
 		footer := lipgloss.NewStyle().
-			Foreground(lipgloss.AdaptiveColor{Light: "#808080", Dark: "#808080"}).
+			Foreground(theme.Current().Muted).
 			Render("ESC to exit scroll mode")
 
 		contentWithFooter := lipgloss.JoinVertical(lipgloss.Left, content, footer)
@@ -231,7 +232,7 @@ func (p *PreviewPane) ScrollDown(instance *session.Instance) error {
 
 		// Set content in the viewport
 		footer := lipgloss.NewStyle().
-			Foreground(lipgloss.AdaptiveColor{Light: "#808080", Dark: "#808080"}).
+			Foreground(theme.Current().Muted).
 			Render("ESC to exit scroll mode")
 
 		contentWithFooter := lipgloss.JoinVertical(lipgloss.Left, content, footer)

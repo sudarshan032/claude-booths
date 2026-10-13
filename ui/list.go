@@ -3,6 +3,7 @@ package ui
 import (
 	"claude-style/log"
 	"claude-style/session"
+	"claude-style/ui/theme"
 	"errors"
 	"fmt"
 	"strings"
@@ -15,43 +16,26 @@ import (
 const readyIcon = "● "
 const pausedIcon = "⏸ "
 
-var readyStyle = lipgloss.NewStyle().
-	Foreground(lipgloss.AdaptiveColor{Light: "#51bd73", Dark: "#51bd73"})
+var (
+	readyStyle, addedLinesStyle, removedLinesStyle, pausedStyle      lipgloss.Style
+	titleStyle, listDescStyle, selectedTitleStyle, selectedDescStyle lipgloss.Style
+	mainTitle, autoYesStyle                                          lipgloss.Style
+)
 
-var addedLinesStyle = lipgloss.NewStyle().
-	Foreground(lipgloss.AdaptiveColor{Light: "#51bd73", Dark: "#51bd73"})
-
-var removedLinesStyle = lipgloss.NewStyle().
-	Foreground(lipgloss.Color("#de613e"))
-
-var pausedStyle = lipgloss.NewStyle().
-	Foreground(lipgloss.AdaptiveColor{Light: "#888888", Dark: "#888888"})
-
-var titleStyle = lipgloss.NewStyle().
-	Padding(1, 1, 0, 1).
-	Foreground(lipgloss.AdaptiveColor{Light: "#1a1a1a", Dark: "#dddddd"})
-
-var listDescStyle = lipgloss.NewStyle().
-	Padding(0, 1, 1, 1).
-	Foreground(lipgloss.AdaptiveColor{Light: "#A49FA5", Dark: "#777777"})
-
-var selectedTitleStyle = lipgloss.NewStyle().
-	Padding(1, 1, 0, 1).
-	Background(lipgloss.Color("#dde4f0")).
-	Foreground(lipgloss.AdaptiveColor{Light: "#1a1a1a", Dark: "#1a1a1a"})
-
-var selectedDescStyle = lipgloss.NewStyle().
-	Padding(0, 1, 1, 1).
-	Background(lipgloss.Color("#dde4f0")).
-	Foreground(lipgloss.AdaptiveColor{Light: "#1a1a1a", Dark: "#1a1a1a"})
-
-var mainTitle = lipgloss.NewStyle().
-	Background(lipgloss.Color("62")).
-	Foreground(lipgloss.Color("230"))
-
-var autoYesStyle = lipgloss.NewStyle().
-	Background(lipgloss.Color("#dde4f0")).
-	Foreground(lipgloss.Color("#1a1a1a"))
+func init() {
+	theme.OnChange(func(p theme.Palette) {
+		readyStyle = lipgloss.NewStyle().Foreground(p.Success)
+		addedLinesStyle = lipgloss.NewStyle().Foreground(p.Success)
+		removedLinesStyle = lipgloss.NewStyle().Foreground(p.Danger)
+		pausedStyle = lipgloss.NewStyle().Foreground(p.Muted)
+		titleStyle = lipgloss.NewStyle().Padding(1, 1, 0, 1).Foreground(p.Text)
+		listDescStyle = lipgloss.NewStyle().Padding(0, 1, 1, 1).Foreground(p.Muted)
+		selectedTitleStyle = lipgloss.NewStyle().Padding(1, 1, 0, 1).Background(p.SelectedBg).Foreground(p.SelectedFg)
+		selectedDescStyle = lipgloss.NewStyle().Padding(0, 1, 1, 1).Background(p.SelectedBg).Foreground(p.SelectedFg)
+		mainTitle = lipgloss.NewStyle().Background(p.Accent).Foreground(p.OnAccent)
+		autoYesStyle = lipgloss.NewStyle().Background(p.SelectedBg).Foreground(p.SelectedFg)
+	})
+}
 
 type List struct {
 	items         []*session.Instance

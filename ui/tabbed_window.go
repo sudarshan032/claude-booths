@@ -3,6 +3,7 @@ package ui
 import (
 	"claude-style/log"
 	"claude-style/session"
+	"claude-style/ui/theme"
 	"github.com/charmbracelet/lipgloss"
 )
 
@@ -17,18 +18,27 @@ func tabBorderWithBottom(left, middle, right string) lipgloss.Border {
 var (
 	inactiveTabBorder = tabBorderWithBottom("┴", "─", "┴")
 	activeTabBorder   = tabBorderWithBottom("┘", " ", "└")
-	highlightColor    = lipgloss.AdaptiveColor{Light: "#874BFD", Dark: "#7D56F4"}
-	inactiveTabStyle  = lipgloss.NewStyle().
-				Border(inactiveTabBorder, true).
-				BorderForeground(highlightColor).
-				AlignHorizontal(lipgloss.Center)
-	activeTabStyle = inactiveTabStyle.
-			Border(activeTabBorder, true).
-			AlignHorizontal(lipgloss.Center)
-	windowStyle = lipgloss.NewStyle().
-			BorderForeground(highlightColor).
-			Border(lipgloss.NormalBorder(), false, true, true, true)
+
+	inactiveTabStyle, activeTabStyle, windowStyle lipgloss.Style
 )
+
+func init() {
+	theme.OnChange(func(p theme.Palette) {
+		inactiveTabStyle = lipgloss.NewStyle().
+			Border(inactiveTabBorder, true).
+			BorderForeground(p.Accent).
+			Foreground(p.Muted).
+			AlignHorizontal(lipgloss.Center)
+		activeTabStyle = inactiveTabStyle.
+			Border(activeTabBorder, true).
+			Foreground(p.Accent).
+			Bold(true).
+			AlignHorizontal(lipgloss.Center)
+		windowStyle = lipgloss.NewStyle().
+			BorderForeground(p.Accent).
+			Border(lipgloss.NormalBorder(), false, true, true, true)
+	})
+}
 
 const (
 	PreviewTab int = iota

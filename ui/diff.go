@@ -2,6 +2,7 @@ package ui
 
 import (
 	"claude-style/session"
+	"claude-style/ui/theme"
 	"fmt"
 	"strings"
 
@@ -10,10 +11,16 @@ import (
 )
 
 var (
-	AdditionStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#22c55e"))
-	DeletionStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#ef4444"))
-	HunkStyle     = lipgloss.NewStyle().Foreground(lipgloss.Color("#0ea5e9"))
+	AdditionStyle, DeletionStyle, HunkStyle lipgloss.Style
 )
+
+func init() {
+	theme.OnChange(func(p theme.Palette) {
+		AdditionStyle = lipgloss.NewStyle().Foreground(p.Success)
+		DeletionStyle = lipgloss.NewStyle().Foreground(p.Danger)
+		HunkStyle = lipgloss.NewStyle().Foreground(p.Info)
+	})
+}
 
 type DiffPane struct {
 	viewport viewport.Model

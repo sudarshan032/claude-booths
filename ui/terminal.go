@@ -4,6 +4,7 @@ import (
 	"claude-style/log"
 	"claude-style/session"
 	"claude-style/session/tmux"
+	"claude-style/ui/theme"
 	"fmt"
 	"os"
 	"strings"
@@ -13,11 +14,14 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-var terminalPaneStyle = lipgloss.NewStyle().
-	Foreground(lipgloss.AdaptiveColor{Light: "#1a1a1a", Dark: "#dddddd"})
+var terminalPaneStyle, terminalFooterStyle lipgloss.Style
 
-var terminalFooterStyle = lipgloss.NewStyle().
-	Foreground(lipgloss.AdaptiveColor{Light: "#808080", Dark: "#808080"})
+func init() {
+	theme.OnChange(func(p theme.Palette) {
+		terminalPaneStyle = lipgloss.NewStyle().Foreground(p.Text)
+		terminalFooterStyle = lipgloss.NewStyle().Foreground(p.Muted)
+	})
+}
 
 // terminalSession holds a cached tmux session for a specific instance.
 type terminalSession struct {
