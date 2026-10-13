@@ -44,6 +44,11 @@ func (g *GitWorktree) setupFromExistingBranch() error {
 	// If the directory is still there (orphaned, not registered with git), drop it so `git worktree add` won't fail.
 	_ = os.RemoveAll(g.worktreePath)
 
+	// git won't check a branch out twice; say where it is instead of surfacing a raw git error
+	if wt, _ := g.runGitCommand(g.repoPath, "branch", "--list", g.branchName, "--format=%(worktreepath)"); strings.TrimSpace(wt) != "" {
+		return fmt.Errorf("branch %s is already checked out at %s (another session?); use a different name or branch", g.branchName, strings.TrimSpace(wt))
+	}
+
 	// Check if the local branch exists
 	_, localErr := g.runGitCommand(g.repoPath, "show-ref", "--verify", fmt.Sprintf("refs/heads/%s", g.branchName))
 	if localErr != nil {

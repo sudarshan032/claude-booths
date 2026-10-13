@@ -125,3 +125,26 @@ func mustRunGit(t *testing.T, dir string, args ...string) string {
 	}
 	return string(output)
 }
+
+func TestBranchCheckedOutElsewhere(t *testing.T) {
+	t.Setenv("HOME", t.TempDir())
+	repoPath := filepath.Join(t.TempDir(), "repo")
+	mustRunGit(t, "", "init", "-b", "main", repoPath)
+	mustRunGit(t, repoPath, "-c", "user.name=T", "-c", "user.email=t@t", "commit", "--allow-empty", "-m", "init")
+	mustRunGit(t, repoPath, "branch", "busy")
+	mustRunGit(t, repoPath, "branch", "free")
+	mustRunGit(t, repoPath, "worktree", "add", filepath.Join(t.TempDir(), "other"), "busy")
+
+	branches, err := SearchBranches(repoPath, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Join(branches, ",") != "free" {
+		t.Fatalf("SearchBranches = %v, want only [free] (main and busy are checked out)", branches)
+	}
+
+	g := &GitWorktree{repoPath: repoPath, worktreePath: filepath.Join(t.TempDir(), "new"), branchName: "busy", isExistingBranch: true}
+	if err := g.Setup(); err == nil || !strings.Contains(err.Error(), "already checked out") {
+		t.Fatalf("Setup() error = %v, want 'already checked out'", err)
+	}
+}

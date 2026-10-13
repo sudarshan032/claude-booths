@@ -30,20 +30,29 @@ func FetchBranches(repoPath string) {
 
 // SearchBranches searches for branches whose name contains filter (case-insensitive),
 // ordered by most recently updated first. Returns at most MaxBranchSearchResults.
-// If filter is empty, returns all branches up to the limit.
+// If filter is empty, returns all branches up to the limit. Branches already checked out
+// in a worktree (the main repo or another session) are left out: git refuses to check
+// them out twice, so picking one would only fail.
 func SearchBranches(repoPath, filter string) ([]string, error) {
 	cmd := exec.Command("git", "-C", repoPath, "branch", "-a",
 		"--sort=-committerdate",
-		"--format=%(refname:short)")
+		"--format=%(refname:short)\t%(worktreepath)")
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		return nil, fmt.Errorf("failed to list branches: %s (%w)", output, err)
 	}
 
-	seen := make(map[string]bool)
+	lines := strings.Split(strings.TrimSpace(string(output)), "\n")
+	seen := make(map[string]bool) // pre-seeded with checked-out branches so their origin/ twins are skipped too
+	for _, line := range lines {
+		if ref, wt, _ := strings.Cut(line, "\t"); strings.TrimSpace(wt) != "" {
+			seen[strings.TrimSpace(ref)] = true
+		}
+	}
 	var branches []string
 	lower := strings.ToLower(filter)
-	for _, line := range strings.Split(strings.TrimSpace(string(output)), "\n") {
+	for _, line := range lines {
+		line, _, _ = strings.Cut(line, "\t")
 		line = strings.TrimSpace(line)
 		if line == "" || strings.Contains(line, "HEAD") {
 			continue
