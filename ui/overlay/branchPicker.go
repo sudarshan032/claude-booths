@@ -1,6 +1,7 @@
 package overlay
 
 import (
+	"fmt"
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -14,6 +15,7 @@ const newBranchOption = "New branch (from HEAD)"
 // via SetResults after each debounced search.
 type BranchPicker struct {
 	results       []string // current search results (from git)
+	inUse         []string // branches checked out in another worktree: shown, never selectable
 	filter        string   // current filter text
 	filterVersion uint64   // incremented on each filter change
 	cursor        int      // index into visibleItems()
@@ -95,17 +97,18 @@ func (bp *BranchPicker) HandleKeyPress(msg tea.KeyMsg) (consumed bool, filterCha
 
 // SetResults updates the branch list with search results.
 // version must match filterVersion for the results to be accepted (prevents stale updates).
-func (bp *BranchPicker) SetResults(branches []string, version uint64) {
+func (bp *BranchPicker) SetResults(branches, inUse []string, version uint64) {
 	if version != bp.filterVersion {
 		return // stale results
 	}
 	bp.results = branches
+	bp.inUse = inUse
 
 	// Hide "New branch" when filter exactly matches a branch name
 	bp.showNewBranch = true
 	if bp.filter != "" {
 		lower := strings.ToLower(bp.filter)
-		for _, b := range branches {
+		for _, b := range append(branches, inUse...) {
 			if strings.ToLower(b) == lower {
 				bp.showNewBranch = false
 				break
@@ -161,6 +164,10 @@ var (
 
 	bpDimStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.Color("240"))
+
+	bpInUseStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("238")).
+			Strikethrough(true)
 )
 
 // Render renders the branch picker.
@@ -176,7 +183,7 @@ func (bp *BranchPicker) Render() string {
 	s.WriteString("\n\n")
 
 	items := bp.visibleItems()
-	if len(items) == 0 {
+	if len(items) == 0 && len(bp.inUse) == 0 {
 		s.WriteString(bpDimStyle.Render("  No matching branches"))
 		return s.String()
 	}
@@ -206,6 +213,18 @@ func (bp *BranchPicker) Render() string {
 		if i < end-1 {
 			s.WriteString("\n")
 		}
+	}
+
+	// Listed so it's clear why they can't be picked; the cursor never reaches them.
+	for i, b := range bp.inUse {
+		if i == 3 {
+			s.WriteString("\n" + bpDimStyle.Render(fmt.Sprintf("  … %d more in use", len(bp.inUse)-3)))
+			break
+		}
+		if len(items) > 0 || i > 0 {
+			s.WriteString("\n")
+		}
+		s.WriteString(bpInUseStyle.Render("  " + b + "  (in use: open in another session or the main folder)"))
 	}
 
 	return s.String()

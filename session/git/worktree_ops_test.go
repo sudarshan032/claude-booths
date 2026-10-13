@@ -135,12 +135,15 @@ func TestBranchCheckedOutElsewhere(t *testing.T) {
 	mustRunGit(t, repoPath, "branch", "free")
 	mustRunGit(t, repoPath, "worktree", "add", filepath.Join(t.TempDir(), "other"), "busy")
 
-	branches, err := SearchBranches(repoPath, "")
+	branches, inUse, err := SearchBranches(repoPath, "")
 	if err != nil {
 		t.Fatal(err)
 	}
 	if strings.Join(branches, ",") != "free" {
 		t.Fatalf("SearchBranches = %v, want only [free] (main and busy are checked out)", branches)
+	}
+	if got := strings.Join(inUse, ","); got != "busy,main" && got != "main,busy" {
+		t.Fatalf("inUse = %v, want main and busy", inUse)
 	}
 
 	g := &GitWorktree{repoPath: repoPath, worktreePath: filepath.Join(t.TempDir(), "new"), branchName: "busy", isExistingBranch: true}

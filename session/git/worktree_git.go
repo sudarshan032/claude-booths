@@ -31,26 +31,29 @@ func FetchBranches(repoPath string) {
 // SearchBranches searches for branches whose name contains filter (case-insensitive),
 // ordered by most recently updated first. Returns at most MaxBranchSearchResults.
 // If filter is empty, returns all branches up to the limit. Branches already checked out
-// in a worktree (the main repo or another session) are left out: git refuses to check
-// them out twice, so picking one would only fail.
-func SearchBranches(repoPath, filter string) ([]string, error) {
+// in a worktree (the main repo or another session) come back separately in inUse: git
+// refuses to check a branch out twice, so they can be shown but not picked.
+func SearchBranches(repoPath, filter string) (branches, inUse []string, err error) {
 	cmd := exec.Command("git", "-C", repoPath, "branch", "-a",
 		"--sort=-committerdate",
 		"--format=%(refname:short)\t%(worktreepath)")
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		return nil, fmt.Errorf("failed to list branches: %s (%w)", output, err)
+		return nil, nil, fmt.Errorf("failed to list branches: %s (%w)", output, err)
 	}
 
 	lines := strings.Split(strings.TrimSpace(string(output)), "\n")
+	lower := strings.ToLower(filter)
 	seen := make(map[string]bool) // pre-seeded with checked-out branches so their origin/ twins are skipped too
 	for _, line := range lines {
 		if ref, wt, _ := strings.Cut(line, "\t"); strings.TrimSpace(wt) != "" {
-			seen[strings.TrimSpace(ref)] = true
+			ref = strings.TrimSpace(ref)
+			seen[ref] = true
+			if filter == "" || strings.Contains(strings.ToLower(ref), lower) {
+				inUse = append(inUse, ref)
+			}
 		}
 	}
-	var branches []string
-	lower := strings.ToLower(filter)
 	for _, line := range lines {
 		line, _, _ = strings.Cut(line, "\t")
 		line = strings.TrimSpace(line)
@@ -70,7 +73,7 @@ func SearchBranches(repoPath, filter string) ([]string, error) {
 			break
 		}
 	}
-	return branches, nil
+	return branches, inUse, nil
 }
 
 // runGitCommand executes a git command and returns any error

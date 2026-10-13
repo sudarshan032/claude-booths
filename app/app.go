@@ -316,7 +316,7 @@ func (m *home) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, m.runBranchSearch(msg.filter, msg.version)
 	case branchSearchResultMsg:
 		if m.textInputOverlay != nil {
-			m.textInputOverlay.SetBranchResults(msg.branches, msg.version)
+			m.textInputOverlay.SetBranchResults(msg.branches, msg.inUse, msg.version)
 		}
 		return m, nil
 	case tea.KeyMsg:
@@ -904,6 +904,7 @@ type branchSearchDebounceMsg struct {
 // branchSearchResultMsg carries search results back to Update.
 type branchSearchResultMsg struct {
 	branches []string
+	inUse    []string
 	version  uint64
 }
 
@@ -921,12 +922,12 @@ func (m *home) scheduleBranchSearch(filter string, version uint64) tea.Cmd {
 func (m *home) runBranchSearch(filter string, version uint64) tea.Cmd {
 	return func() tea.Msg {
 		currentDir, _ := os.Getwd()
-		branches, err := git.SearchBranches(currentDir, filter)
+		branches, inUse, err := git.SearchBranches(currentDir, filter)
 		if err != nil {
 			log.WarningLog.Printf("branch search failed: %v", err)
 			return nil
 		}
-		return branchSearchResultMsg{branches: branches, version: version}
+		return branchSearchResultMsg{branches: branches, inUse: inUse, version: version}
 	}
 }
 

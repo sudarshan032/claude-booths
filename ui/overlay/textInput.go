@@ -272,11 +272,11 @@ func (t *TextInputOverlay) BranchFilter() string {
 
 // SetBranchResults updates the branch picker with search results.
 // version must match the picker's current filterVersion to be accepted.
-func (t *TextInputOverlay) SetBranchResults(branches []string, version uint64) {
+func (t *TextInputOverlay) SetBranchResults(branches, inUse []string, version uint64) {
 	if t.branchPicker == nil {
 		return
 	}
-	t.branchPicker.SetResults(branches, version)
+	t.branchPicker.SetResults(branches, inUse, version)
 }
 
 // IsSubmitted returns whether the form was submitted.
