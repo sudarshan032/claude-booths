@@ -17,25 +17,36 @@ permissions:
 
 jobs:
   test:
-    name: test (${{ matrix.os }})
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod # toolchain line is the single source of the Go version
       - name: Install tmux
-        run: |
-          if [ "$RUNNER_OS" = "Linux" ]; then sudo apt-get update -qq && sudo apt-get install -y -qq tmux; else brew install tmux; fi
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq tmux
+      - name: Test (race detector)
+        run: go test -race -count=1 ./...
+
+  # macOS is the main platform, but hosted macOS runners are often queued for a long time
+  # and cost 10x minutes on private repos, so this job is informational: build doesn't wait on it.
+  test-macos:
+    runs-on: macos-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: Install tmux
+        run: brew install tmux
       - name: Test (race detector)
         run: go test -race -count=1 ./...
 
   lint:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
@@ -55,6 +66,7 @@ jobs:
   build:
     needs: [test, lint]
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     strategy:
       matrix:
         include:
