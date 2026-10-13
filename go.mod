@@ -1,8 +1,6 @@
 module claude-style
 
-go 1.23.0
-
-toolchain go1.25.8
+go 1.26.0
 
 require (
 	github.com/atotto/clipboard v0.1.4
@@ -16,8 +14,8 @@ require (
 	github.com/muesli/termenv v0.15.2
 	github.com/spf13/cobra v1.9.1
 	github.com/stretchr/testify v1.10.0
-	golang.org/x/sys v0.31.0
-	golang.org/x/term v0.30.0
+	golang.org/x/sys v0.49.0
+	golang.org/x/term v0.47.0
 )
 
 require (
