@@ -42,7 +42,31 @@ func (p *PreviewPane) SetSize(width, maxHeight int) {
 	p.width = width
 	p.height = maxHeight
 	p.viewport.Width = width
-	p.viewport.Height = maxHeight
+	p.viewport.Height = max(maxHeight-1, 0) // one row for the scroll-mode header
+}
+
+// scrollStep is how many lines one wheel notch or shift+arrow moves.
+const scrollStep = 3
+
+// enterScroll loads the pane's full scrollback into the viewport, positioned at the bottom.
+func (p *PreviewPane) enterScroll(instance *session.Instance) error {
+	content, err := instance.PreviewFullHistory()
+	if err != nil {
+		return err
+	}
+	p.viewport.SetContent(strings.TrimRight(content, "\n"))
+	p.viewport.GotoBottom()
+	p.isScrolling = true
+	return nil
+}
+
+// scrollHeader is the first row in scroll mode: where you are and how to get out.
+func (p *PreviewPane) scrollHeader() string {
+	pal := theme.Current()
+	label := lipgloss.NewStyle().Background(pal.Accent).Foreground(pal.OnAccent).Bold(true).Render(" SCROLL ")
+	hint := lipgloss.NewStyle().Foreground(pal.Muted).Render(fmt.Sprintf(
+		" %3.0f%%  wheel / shift+↑↓ to scroll · Esc to go back to live", p.viewport.ScrollPercent()*100))
+	return label + hint
 }
 
 // setFallbackState sets the preview state with fallback text and a message
@@ -79,21 +103,7 @@ func (p *PreviewPane) UpdateContent(instance *session.Instance) error {
 	var content string
 	var err error
 
-	// If in scroll mode but haven't captured content yet, do it now
-	if p.isScrolling && p.viewport.Height > 0 && len(p.viewport.View()) == 0 {
-		// Capture full pane content including scrollback history using capture-pane -p -S -
-		content, err = instance.PreviewFullHistory()
-		if err != nil {
-			return err
-		}
-
-		// Set content in the viewport
-		footer := lipgloss.NewStyle().
-			Foreground(theme.Current().Muted).
-			Render("ESC to exit scroll mode")
-
-		p.viewport.SetContent(lipgloss.JoinVertical(lipgloss.Left, content, footer))
-	} else if !p.isScrolling {
+	if !p.isScrolling {
 		// In normal mode, use the usual preview
 		content, err = instance.Preview()
 		if err != nil {
@@ -155,9 +165,9 @@ func (p *PreviewPane) String() string {
 			Render(strings.Join(lines, ""))
 	}
 
-	// If in copy mode, use the viewport to display scrollable content
+	// Scroll mode: frozen snapshot of the full history, with a header saying so
 	if p.isScrolling {
-		return p.viewport.View()
+		return lipgloss.JoinVertical(lipgloss.Left, p.scrollHeader(), p.viewport.View())
 	}
 
 	// Normal mode display
@@ -184,69 +194,29 @@ func (p *PreviewPane) String() string {
 	return rendered
 }
 
-// ScrollUp scrolls up in the viewport
+// ScrollUp scrolls up, entering scroll mode (at the bottom of the history) first if needed.
 func (p *PreviewPane) ScrollUp(instance *session.Instance) error {
 	if instance == nil || instance.Status == session.Paused {
 		return nil
 	}
-
 	if !p.isScrolling {
-		// Entering scroll mode - capture entire pane content including scrollback history
-		content, err := instance.PreviewFullHistory()
-		if err != nil {
+		if err := p.enterScroll(instance); err != nil {
 			return err
 		}
-
-		// Set content in the viewport
-		footer := lipgloss.NewStyle().
-			Foreground(theme.Current().Muted).
-			Render("ESC to exit scroll mode")
-
-		contentWithFooter := lipgloss.JoinVertical(lipgloss.Left, content, footer)
-		p.viewport.SetContent(contentWithFooter)
-
-		// Position the viewport at the bottom initially
-		p.viewport.GotoBottom()
-
-		p.isScrolling = true
-		return nil
 	}
-
-	// Already in scroll mode, just scroll the viewport
-	p.viewport.LineUp(1)
+	p.viewport.LineUp(scrollStep)
 	return nil
 }
 
-// ScrollDown scrolls down in the viewport
+// ScrollDown scrolls down; scrolling past the bottom returns to the live preview.
 func (p *PreviewPane) ScrollDown(instance *session.Instance) error {
-	if instance == nil || instance.Status == session.Paused {
-		return nil
+	if instance == nil || instance.Status == session.Paused || !p.isScrolling {
+		return nil // nothing below the live view
 	}
-
-	if !p.isScrolling {
-		// Entering scroll mode - capture entire pane content including scrollback history
-		content, err := instance.PreviewFullHistory()
-		if err != nil {
-			return err
-		}
-
-		// Set content in the viewport
-		footer := lipgloss.NewStyle().
-			Foreground(theme.Current().Muted).
-			Render("ESC to exit scroll mode")
-
-		contentWithFooter := lipgloss.JoinVertical(lipgloss.Left, content, footer)
-		p.viewport.SetContent(contentWithFooter)
-
-		// Position the viewport at the bottom initially
-		p.viewport.GotoBottom()
-
-		p.isScrolling = true
-		return nil
+	if p.viewport.AtBottom() {
+		return p.ResetToNormalMode(instance)
 	}
-
-	// Already in copy mode, just scroll the viewport
-	p.viewport.LineDown(1)
+	p.viewport.LineDown(scrollStep)
 	return nil
 }
 
