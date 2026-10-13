@@ -400,9 +400,12 @@ func (t *TmuxSession) Attach() (chan struct{}, error) {
 				continue
 			}
 
-			// Check for Ctrl+q (ASCII 17)
-			if nr == 1 && buf[0] == 17 {
-				// Detach from the session
+			// Ctrl+Q detaches. It can arrive inside a larger read (typed right after other
+			// keys, or with a focus event), so look for it anywhere; forward what precedes it.
+			if i := detachKeyIndex(buf[:nr]); i >= 0 {
+				if i > 0 {
+					_, _ = t.ptmx.Write(buf[:i])
+				}
 				t.Detach()
 				return
 			}
@@ -414,6 +417,29 @@ func (t *TmuxSession) Attach() (chan struct{}, error) {
 
 	t.monitorWindowSize()
 	return t.attachCh, nil
+}
+
+// detachKeyEncodings are the ways a terminal can send Ctrl+Q: the plain control byte, and
+// the CSI-u / xterm modifyOtherKeys forms used when extended key reporting is on.
+var detachKeyEncodings = [][]byte{{0x11}, []byte("\x1b[113;5u"), []byte("\x1b[27;5;113~")}
+
+// detachKeyIndex returns where the first Ctrl+Q starts in b, or -1.
+func detachKeyIndex(b []byte) int {
+	first := -1
+	for _, enc := range detachKeyEncodings {
+		if i := bytes.Index(b, enc); i >= 0 && (first < 0 || i < first) {
+			first = i
+		}
+	}
+	return first
+}
+
+// restoreTerminalModes undoes modes the tmux client turned on in the real terminal. It is
+// killed on detach rather than exiting cleanly, so without this its cursor stays visible
+// over the TUI and focus reporting stays on. (Bracketed paste and mouse are left alone: the
+// TUI uses them too.)
+func restoreTerminalModes() {
+	_, _ = os.Stdout.WriteString("\x1b[?25l\x1b[?1004l")
 }
 
 // DetachSafely disconnects from the current tmux session without panicking
@@ -451,6 +477,8 @@ func (t *TmuxSession) DetachSafely() error {
 	}
 
 	t.ctx = nil
+
+	restoreTerminalModes()
 
 	if len(errs) > 0 {
 		return fmt.Errorf("errors during detach: %v", errs)
@@ -496,6 +524,7 @@ func (t *TmuxSession) Detach() {
 	// Cancel goroutines created by Attach.
 	t.cancel()
 	t.wg.Wait()
+	restoreTerminalModes()
 }
 
 // Close terminates the tmux session and cleans up resources
