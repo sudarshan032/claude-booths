@@ -2,6 +2,7 @@ package session
 
 import (
 	"claude-style/cmd/cmd_test"
+	"claude-style/internal/testutil"
 	"claude-style/log"
 	"claude-style/session/tmux"
 	"fmt"
@@ -15,9 +16,12 @@ import (
 )
 
 func TestMain(m *testing.M) {
+	cleanup := testutil.Isolate()
 	log.Initialize(false)
-	defer log.Close()
-	os.Exit(m.Run())
+	code := m.Run()
+	log.Close()
+	cleanup()
+	os.Exit(code)
 }
 
 // nullPtyFactory hands back a throwaway file instead of a real PTY.

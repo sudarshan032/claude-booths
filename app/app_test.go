@@ -2,6 +2,7 @@ package app
 
 import (
 	"claude-style/config"
+	"claude-style/internal/testutil"
 	"claude-style/log"
 	"claude-style/session"
 	"claude-style/ui"
@@ -19,15 +20,12 @@ import (
 
 // TestMain runs before all tests to set up the test environment
 func TestMain(m *testing.M) {
-	// Initialize the logger before any tests run
+	cleanup := testutil.Isolate()
 	log.Initialize(false)
-	defer log.Close()
-
-	// Run all tests
-	exitCode := m.Run()
-
-	// Exit with the same code as the tests
-	os.Exit(exitCode)
+	code := m.Run()
+	log.Close()
+	cleanup()
+	os.Exit(code)
 }
 
 // TestConfirmationModalStateTransitions tests state transitions without full instance setup

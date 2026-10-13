@@ -1,6 +1,7 @@
 package config
 
 import (
+	"claude-style/internal/testutil"
 	"claude-style/log"
 	"os"
 	"path/filepath"
@@ -14,12 +15,12 @@ import (
 
 // TestMain runs before all tests to set up the test environment
 func TestMain(m *testing.M) {
-	// Initialize the logger before any tests run
+	cleanup := testutil.Isolate()
 	log.Initialize(false)
-	defer log.Close()
-
-	exitCode := m.Run()
-	os.Exit(exitCode)
+	code := m.Run()
+	log.Close()
+	cleanup()
+	os.Exit(code)
 }
 
 func TestGetClaudeCommand(t *testing.T) {
