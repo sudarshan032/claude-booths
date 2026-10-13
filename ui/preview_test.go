@@ -387,3 +387,13 @@ func max(a, b int) int {
 	}
 	return b
 }
+
+func TestPreviewShowsLastRowOfFullPane(t *testing.T) {
+	p := NewPreviewPane()
+	p.SetSize(40, 3)
+	p.previewState = previewState{text: "out\n❯ abc\nstatus\n"} // full 3-row pane as capture-pane returns it
+	out := p.String()
+	if !strings.Contains(out, "status") || strings.Contains(out, "...") {
+		t.Fatalf("last row lost:\n%q", out)
+	}
+}

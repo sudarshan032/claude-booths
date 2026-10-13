@@ -161,15 +161,16 @@ func (p *PreviewPane) String() string {
 
 	// Normal mode display
 	// Calculate available height accounting for border and margin
-	availableHeight := p.height - 1 //  1 for ellipsis
+	availableHeight := p.height
 
-	lines := strings.Split(p.previewState.text, "\n")
+	// capture-pane ends every row with \n; trim it so a full pane fits exactly instead of
+	// losing its last row (the agent's input box / status line) to a "..." marker.
+	lines := strings.Split(strings.TrimRight(p.previewState.text, "\n"), "\n")
 
-	// Truncate if we have more lines than available height
+	// If taller than the pane, keep the bottom: that's where the agent's live output and prompt are
 	if availableHeight > 0 {
 		if len(lines) > availableHeight {
-			lines = lines[:availableHeight]
-			lines = append(lines, "...")
+			lines = lines[len(lines)-availableHeight:]
 		} else {
 			// Pad with empty lines to fill available height
 			padding := availableHeight - len(lines)
