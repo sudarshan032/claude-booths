@@ -41,7 +41,7 @@ jobs:
           echo "✅ Tag version matches main.go version: $VERSION"
 
       - name: Set up Go 1.25
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
 
