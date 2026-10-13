@@ -226,7 +226,7 @@ func CleanupWorktrees() error {
 			}
 
 			// Remove the worktree directory
-			os.RemoveAll(worktreePath)
+			_ = os.RemoveAll(worktreePath)
 		}
 	}
 

@@ -1,0 +1,6 @@
+version: "2"
+linters:
+  settings:
+    staticcheck:
+      # v2 defaults, plus QF1003 (if/else-if chains on m.state read fine as they are)
+      checks: ["all", "-ST1000", "-ST1003", "-ST1016", "-ST1020", "-ST1021", "-ST1022", "-QF1003"]

@@ -1,0 +1,83 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+    paths-ignore: ['**.md', 'assets/**', 'LICENSE.md']
+  pull_request:
+    branches: [main]
+    paths-ignore: ['**.md', 'assets/**', 'LICENSE.md']
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod # toolchain line is the single source of the Go version
+      - name: Install tmux
+        run: |
+          if [ "$RUNNER_OS" = "Linux" ]; then sudo apt-get update -qq && sudo apt-get install -y -qq tmux; else brew install tmux; fi
+      - name: Test (race detector)
+        run: go test -race -count=1 ./...
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: gofmt
+        run: |
+          unformatted=$(gofmt -l .)
+          if [ -n "$unformatted" ]; then echo "Not gofmt'd:"; echo "$unformatted"; exit 1; fi
+      - name: go vet
+        run: go vet ./...
+      - uses: golangci/golangci-lint-action@v8
+        with:
+          version: v2.5.0 # v1.x can't load code targeting go1.25; config in .golangci.yml
+          args: --timeout=3m
+
+  build:
+    needs: [test, lint]
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - { goos: linux, goarch: amd64 }
+          - { goos: linux, goarch: arm64 }
+          - { goos: darwin, goarch: amd64 }
+          - { goos: darwin, goarch: arm64 }
+          - { goos: windows, goarch: amd64 }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: Build
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+          CGO_ENABLED: '0'
+        run: |
+          ext=""; [ "$GOOS" = windows ] && ext=.exe
+          go build -trimpath -o "build/claude-style$ext" .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: claude-style-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: build/*
+          retention-days: 7

@@ -159,7 +159,7 @@ func TestCapturePaneContentStreamsInsteadOfPolling(t *testing.T) {
 
 	_ = w.Close() // pump exits: no streaming, so every call captures again
 	waitFor(func() bool { return !session.streaming.Load() })
-	session.CapturePaneContent()
-	session.CapturePaneContent()
+	_, _ = session.CapturePaneContent()
+	_, _ = session.CapturePaneContent()
 	require.Equal(t, 4, captures)
 }

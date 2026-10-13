@@ -1,0 +1,24 @@
+# Changelog
+
+All notable changes to Claude Style. Format: [Keep a Changelog](https://keepachangelog.com/),
+versions: [SemVer](https://semver.org/). Claude Style forked from claude-squad v1.0.20.
+
+## Unreleased
+
+### Changed
+- Rebranded from claude-squad: binary `claude-style`, config `~/.claude-style`, tmux prefix
+  `claudestyle_`. First run migrates `~/.claude-squad` config/state and renames running sessions.
+- Branch picker lists branches checked out elsewhere greyed out and unselectable.
+
+### Performance
+- Pane previews are streamed from the session's tmux client instead of polling `capture-pane`
+  (two idle sessions: 124 tmux processes per 10 s → 0).
+
+### Fixed
+- First keystroke / start of a paste lost when attaching (TUI no longer reads stdin while attached).
+- Background `git fetch` could prompt for credentials on the TTY and hang; now never prompts, 20 s timeout.
+- Prompt from Shift+N could be dropped while the agent was still booting.
+- New session silently vanished when its branch was already checked out elsewhere; now a clear error.
+- Terminal tab hid the top row of the pane (a fresh shell looked empty).
+- Preview replaced the pane's last row with `...`.
+- Tests no longer touch the real `~/.claude-style` or the default tmux server.
