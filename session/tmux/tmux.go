@@ -303,7 +303,7 @@ func (t *TmuxSession) Attach() (chan struct{}, error) {
 		}()
 
 		// Read input from stdin and check for Ctrl+q
-		buf := make([]byte, 32)
+		buf := make([]byte, 4096) // large enough that pastes are forwarded in one write
 		for {
 			nr, err := os.Stdin.Read(buf)
 			if err != nil {
