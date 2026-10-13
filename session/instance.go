@@ -636,12 +636,25 @@ func (i *Instance) SendPrompt(prompt string) error {
 	if i.tmuxSession == nil {
 		return fmt.Errorf("tmux session not initialized")
 	}
+	// Wait for the program to finish booting (startup hooks etc.): pane unchanged for
+	// 1s, capped at 20s. Otherwise the Enter below lands mid-startup and is dropped.
+	prev, _ := i.tmuxSession.CapturePaneContent()
+	for stable, deadline := 0, time.Now().Add(20*time.Second); stable < 4 && time.Now().Before(deadline); {
+		time.Sleep(250 * time.Millisecond)
+		cur, _ := i.tmuxSession.CapturePaneContent()
+		if cur == prev {
+			stable++
+		} else {
+			stable, prev = 0, cur
+		}
+	}
+
 	if err := i.tmuxSession.SendKeys(prompt); err != nil {
 		return fmt.Errorf("error sending keys to tmux session: %w", err)
 	}
 
-	// Brief pause to prevent carriage return from being interpreted as newline
-	time.Sleep(100 * time.Millisecond)
+	// Pause so the carriage return isn't treated as part of a paste (newline)
+	time.Sleep(500 * time.Millisecond)
 	if err := i.tmuxSession.TapEnter(); err != nil {
 		return fmt.Errorf("error tapping enter: %w", err)
 	}

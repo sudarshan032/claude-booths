@@ -23,10 +23,39 @@ import (
 
 const GlobalInstanceLimit = 10
 
+// gatedStdin is the TUI's stdin. While a session is attached, the attach loop reads
+// os.Stdin itself; if bubbletea kept reading too it would steal the first chunk of
+// input (a keystroke or ~256 bytes of a paste) and replay it as UI keys on detach.
+type gatedStdin struct {
+	*os.File
+	mu sync.RWMutex
+}
+
+func (g *gatedStdin) Read(p []byte) (int, error) {
+	g.mu.RLock()
+	defer g.mu.RUnlock()
+	return g.File.Read(p)
+}
+
+var uiStdin = &gatedStdin{File: os.Stdin}
+
+// attachAndWait hands stdin to an attached session until it detaches.
+func attachAndWait(attach func() (chan struct{}, error)) error {
+	uiStdin.mu.Lock()
+	defer uiStdin.mu.Unlock()
+	ch, err := attach()
+	if err != nil {
+		return err
+	}
+	<-ch
+	return nil
+}
+
 // Run is the main entrypoint into the application.
 func Run(ctx context.Context, program string, autoYes bool) error {
 	p := tea.NewProgram(
 		newHome(ctx, program, autoYes),
+		tea.WithInput(uiStdin),
 		tea.WithAltScreen(),
 		tea.WithMouseCellMotion(), // Mouse scroll
 	)
@@ -325,9 +354,12 @@ func (m *home) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		} else {
 			// If instance has a prompt (set from Shift+N flow), send it now
 			if msg.instance.Prompt != "" {
-				if err := msg.instance.SendPrompt(msg.instance.Prompt); err != nil {
-					log.ErrorLog.Printf("failed to send prompt: %v", err)
-				}
+				// async: SendPrompt waits for the program to boot; don't freeze the UI
+				go func(inst *session.Instance, prompt string) {
+					if err := inst.SendPrompt(prompt); err != nil {
+						log.ErrorLog.Printf("failed to send prompt: %v", err)
+					}
+				}(msg.instance, msg.instance.Prompt)
 				msg.instance.Prompt = ""
 			}
 			m.menu.SetState(ui.StateDefault)
@@ -536,9 +568,11 @@ func (m *home) handleKeyPress(msg tea.KeyMsg) (mod tea.Model, cmd tea.Cmd) {
 				}
 
 				// Regular flow: instance already running, just send prompt
-				if err := selected.SendPrompt(prompt); err != nil {
-					return m, m.handleError(err)
-				}
+				go func(inst *session.Instance) {
+					if err := inst.SendPrompt(prompt); err != nil {
+						log.ErrorLog.Printf("failed to send prompt: %v", err)
+					}
+				}(selected)
 			}
 
 			// Close the overlay and reset state
@@ -787,24 +821,20 @@ func (m *home) handleKeyPress(msg tea.KeyMsg) (mod tea.Model, cmd tea.Cmd) {
 		// Terminal tab: attach to terminal session
 		if m.tabbedWindow.IsInTerminalTab() {
 			m.showHelpScreen(helpTypeInstanceAttach{}, func() {
-				ch, err := m.tabbedWindow.AttachTerminal()
-				if err != nil {
+				if err := attachAndWait(m.tabbedWindow.AttachTerminal); err != nil {
 					m.handleError(err)
 					return
 				}
-				<-ch
 				m.state = stateDefault
 			})
 			return m, nil
 		}
 		// Show help screen before attaching
 		m.showHelpScreen(helpTypeInstanceAttach{}, func() {
-			ch, err := m.list.Attach()
-			if err != nil {
+			if err := attachAndWait(m.list.Attach); err != nil {
 				m.handleError(err)
 				return
 			}
-			<-ch
 			m.state = stateDefault
 			m.instanceChanged()
 		})
