@@ -54,7 +54,7 @@ Body explains why (what broke, for whom), not what the diff says.
 gofmt -l .        # must print nothing
 go vet ./...
 go test -race -count=1 ./...
-golangci-lint run # v1.64.8, same as CI
+golangci-lint run # v2.5.0, same as CI (config: .golangci.yml)
 ```
 
 ## Releases

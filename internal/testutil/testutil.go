@@ -21,8 +21,13 @@ func Isolate() (cleanup func()) {
 			panic(err)
 		}
 	}
-	os.Setenv("HOME", home)
-	os.Setenv("TMUX_TMPDIR", tmuxDir)
-	os.Unsetenv("TMUX")
+	for k, v := range map[string]string{"HOME": home, "TMUX_TMPDIR": tmuxDir} {
+		if err := os.Setenv(k, v); err != nil {
+			panic(err)
+		}
+	}
+	if err := os.Unsetenv("TMUX"); err != nil {
+		panic(err)
+	}
 	return func() { _ = os.RemoveAll(dir) }
 }
