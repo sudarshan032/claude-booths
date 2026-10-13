@@ -163,3 +163,22 @@ func TestCapturePaneContentStreamsInsteadOfPolling(t *testing.T) {
 	_, _ = session.CapturePaneContent()
 	require.Equal(t, 4, captures)
 }
+
+func TestDetachKeyIndex(t *testing.T) {
+	for _, tc := range []struct {
+		in   string
+		want int
+	}{
+		{"\x11", 0},
+		{"abc\x11", 3},        // typed right after other keys, arrives in one read
+		{"\x1b[I\x11", 3},     // after a focus-in event
+		{"x\x1b[113;5u", 1},   // CSI-u (kitty keyboard / extended keys)
+		{"\x1b[27;5;113~", 0}, // xterm modifyOtherKeys
+		{"hello", -1},
+		{"\x1b[113u", -1}, // plain q in CSI-u, no ctrl
+	} {
+		if got := detachKeyIndex([]byte(tc.in)); got != tc.want {
+			t.Errorf("detachKeyIndex(%q) = %d, want %d", tc.in, got, tc.want)
+		}
+	}
+}

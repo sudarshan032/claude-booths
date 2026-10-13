@@ -20,6 +20,10 @@ versions: [SemVer](https://semver.org/). Claude Style forked from claude-squad v
   (two idle sessions: 124 tmux processes per 10 s → 0).
 
 ### Fixed
+- Ctrl+Q was ignored when it arrived in the same read as other input (typed quickly after
+  other keys, or with a focus event); also accepts the CSI-u / modifyOtherKeys encodings.
+- After detaching, the terminal's cursor stayed visible over the TUI (green block in the
+  corner) and focus reporting stayed on.
 - First keystroke / start of a paste lost when attaching (TUI no longer reads stdin while attached).
 - Background `git fetch` could prompt for credentials on the TTY and hang; now never prompts, 20 s timeout.
 - Prompt from Shift+N could be dropped while the agent was still booting.
