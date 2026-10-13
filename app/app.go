@@ -6,8 +6,10 @@ import (
 	"claude-style/log"
 	"claude-style/session"
 	"claude-style/session/git"
+	"claude-style/session/tmux"
 	"claude-style/ui"
 	"claude-style/ui/overlay"
+	"claude-style/ui/theme"
 	"context"
 	"fmt"
 	"os"
@@ -135,6 +137,10 @@ type home struct {
 func newHome(ctx context.Context, program string, autoYes bool) *home {
 	// Load application config
 	appConfig := config.LoadConfig()
+	if err := theme.Set(appConfig.Theme); err != nil {
+		log.WarningLog.Printf("%v; using %s", err, theme.DefaultName)
+	}
+	tmux.StatusStyle = tmuxStatusStyle(theme.Current())
 
 	// Load application state
 	appState := config.LoadState()
@@ -643,6 +649,8 @@ func (m *home) handleKeyPress(msg tea.KeyMsg) (mod tea.Model, cmd tea.Cmd) {
 	switch name {
 	case keys.KeyHelp:
 		return m.showHelpScreen(helpTypeGeneral{}, nil)
+	case keys.KeyTheme:
+		return m, m.cycleTheme()
 	case keys.KeyPrompt:
 		if m.list.NumInstances() >= GlobalInstanceLimit {
 			return m, m.handleError(
@@ -1001,6 +1009,41 @@ func tickUpdateMetadataCmd(active []*session.Instance, selected *session.Instanc
 
 		return metadataUpdateDoneMsg{results: results}
 	}
+}
+
+// cycleTheme switches to the next built-in theme, restyles running tmux sessions' status
+// bars and saves the choice to the config.
+func (m *home) cycleTheme() tea.Cmd {
+	next := theme.Next()
+	if err := theme.Set(next); err != nil {
+		return m.handleError(err)
+	}
+	tmux.StatusStyle = tmuxStatusStyle(theme.Current())
+	for _, inst := range m.list.GetInstances() {
+		inst.ApplyStatusStyle()
+	}
+	m.appConfig.Theme = next
+	if err := config.SaveConfig(m.appConfig); err != nil {
+		return m.handleError(fmt.Errorf("theme %s applied but not saved: %w", next, err))
+	}
+	m.errBox.SetInfo("theme: " + next + "  (t for next)")
+	return func() tea.Msg {
+		select {
+		case <-m.ctx.Done():
+		case <-time.After(3 * time.Second):
+		}
+		return hideErrMsg{}
+	}
+}
+
+// tmuxStatusStyle renders a palette as a tmux status-style; "" if its colors have no hex form.
+func tmuxStatusStyle(p theme.Palette) string {
+	bg, ok1 := theme.Hex(p.Accent)
+	fg, ok2 := theme.Hex(p.OnAccent)
+	if !ok1 || !ok2 {
+		return ""
+	}
+	return "bg=" + bg + ",fg=" + fg
 }
 
 // handleError handles all errors which get bubbled up to the app. sets the error message. We return a callback tea.Cmd that returns a hideErrMsg message

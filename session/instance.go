@@ -261,6 +261,7 @@ func (i *Instance) Start(firstTimeSetup bool) error {
 			setupErr = fmt.Errorf("failed to restore existing session: %w", err)
 			return setupErr
 		}
+		tmuxSession.ApplyStatusStyle() // the theme may have changed since it was created
 	} else {
 		// Setup git worktree first
 		if err := i.gitWorktree.Setup(); err != nil {
@@ -370,6 +371,13 @@ func (i *Instance) Attach() (chan struct{}, error) {
 		return nil, fmt.Errorf("cannot attach instance that has not been started")
 	}
 	return i.tmuxSession.Attach()
+}
+
+// ApplyStatusStyle re-applies the theme's tmux status bar style to a running session.
+func (i *Instance) ApplyStatusStyle() {
+	if i.started && i.Status != Paused && i.tmuxSession != nil {
+		i.tmuxSession.ApplyStatusStyle()
+	}
 }
 
 func (i *Instance) SetPreviewSize(width, height int) error {

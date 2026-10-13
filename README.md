@@ -84,6 +84,19 @@ NOTE: The default program is `claude` and we recommend using the latest version.
 
 <br />
 
+#### Themes
+
+Press `t` in the app to cycle themes (the choice is saved), or from the shell:
+
+```bash
+claude-style themes            # list themes with color swatches, * marks the active one
+claude-style themes monokai    # set one
+```
+
+Built-in: `claude-style` (default), `monokai`, `vscode`, `ocean-green`, `dracula`, `nord`,
+`gruvbox`, `solarized`. Stored as `"theme"` in `~/.claude-style/config.json`. Themes color the
+UI and each session's tmux status bar; the background stays your terminal's.
+
 #### Menu
 The menu at the bottom of the screen shows available commands: 
 

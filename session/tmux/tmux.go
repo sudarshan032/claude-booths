@@ -71,6 +71,21 @@ type TmuxSession struct {
 
 const TmuxPrefix = "claudestyle_"
 
+// StatusStyle is applied as each session's tmux status-style (the bar shown while attached,
+// if status is on). Set by the app from the active theme; "" leaves tmux's own setting.
+var StatusStyle string
+
+// ApplyStatusStyle sets StatusStyle on this session.
+func (t *TmuxSession) ApplyStatusStyle() {
+	if StatusStyle == "" {
+		return
+	}
+	cmd := exec.Command("tmux", "set-option", "-t", t.sanitizedName, "status-style", StatusStyle)
+	if err := t.cmdExec.Run(cmd); err != nil {
+		log.InfoLog.Printf("could not set status-style for %s: %v", t.sanitizedName, err)
+	}
+}
+
 // ErrSessionNotFound is returned when the tmux session backing an instance is gone, which
 // happens whenever the tmux server dies (reboot, crash, `tmux kill-server`).
 var ErrSessionNotFound = errors.New("tmux session no longer exists")
@@ -172,6 +187,8 @@ func (t *TmuxSession) Start(workDir string) error {
 	if err := t.cmdExec.Run(mouseCmd); err != nil {
 		log.InfoLog.Printf("Warning: failed to enable mouse scrolling for session %s: %v", t.sanitizedName, err)
 	}
+
+	t.ApplyStatusStyle()
 
 	err = t.Restore()
 	if err != nil {
