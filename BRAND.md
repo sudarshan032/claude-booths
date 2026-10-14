@@ -18,7 +18,7 @@ that picture, drawn simply: arched booths in indigo, a lamp-amber booth for acti
 
 - Minimum size 20 px (mark) / 16 px (tile). Clear space: one booth width on every side.
 - Don't recolor, outline, stretch, rotate or add shadows. Don't light a side booth.
-- Wordmark: **Claude Booths** in Unbounded SemiBold next to the mark. Commands and paths are lowercase: `claude-booths`.
+- Wordmark: **Claude Booths** in Geist SemiBold (650), tracking −0.025em next to the mark. Commands and paths are lowercase: `claude-booths`.
 
 ## Color
 
@@ -47,17 +47,22 @@ same primary/secondary with `AdaptiveColor` for light terminals.
 
 ## Type
 
-| Role | Face | Notes |
+One family, like the best developer-tool sites: **Geist** for everything (headings, body, UI) and
+**Geist Mono** for code, keys and the app window. They're drawn as one family, so commands sit
+naturally in running text. Hierarchy comes from size and weight only, never from a second face.
+
+| Role | Face | Weight / tracking |
 |---|---|---|
-| Display (headings, wordmark) | **Unbounded** 600–700 | Wide, signage-like geometric face: booths have signs. Tracking −0.035em at display sizes |
-| Body and UI | **Hanken Grotesk** 400–700 | Warm grotesk with good small-size legibility |
-| Code, keys, the app window | **Martian Mono** 400–700 | Distinctive mono for commands and keycaps |
+| Display (h1) | Geist | 700, −0.045em, line height 1.02 |
+| Headings (h2/h3) | Geist | 700 / 600, −0.035em to −0.02em |
+| Body and UI | Geist | 400 (650 for buttons and labels), normal tracking |
+| Code, keys, app window | Geist Mono | 400 / 600 |
 
-All three are OFL, self-hosted from `docs/assets/fonts/` and subset to Latin (25 + 21 + 12 KB);
-the two text faces are preloaded. Scale (desktop): 66 / 42 / 24 / 18 / 17 / 15. Body line height
-1.6, measure under 65ch. `text-wrap: balance` on headings.
+Both are OFL, self-hosted from `docs/assets/fonts/` and subset to Latin (17 + 13 KB), preloaded.
+Scale (desktop): 76 / 46 / 26 / 20 / 17 / 15. Body line height 1.6, measure under 65ch,
+`text-wrap: balance` on headings.
 
-**Keycaps** are one component (`.k`): indigo-tinted cap with a bottom edge, Martian Mono 600.
+**Keycaps** are one component (`.k`): indigo-tinted cap with a bottom edge, Geist Mono 600.
 Combos sit side by side (`ctrl` `q`); key + description pairs sit in an indigo-50 pill.
 
 ## Layout and components
@@ -77,7 +82,7 @@ Combos sit side by side (`ctrl` `q`); key + description pairs sit in an indigo-5
 
 ## Performance budget (website)
 
-One HTML file with inline CSS/JS, ~58 KB of self-hosted fonts, inline SVG icons, no frameworks, no third-party
+One HTML file with inline CSS/JS, ~29 KB of self-hosted fonts, inline SVG icons, no frameworks, no third-party
 requests. Images are lazy and sized (no layout shift). Target: under 60 KB before images, first
 paint in one round trip.
 
@@ -100,7 +105,7 @@ keep *"Not affiliated with or endorsed by Anthropic."* wherever the brand appear
 | File | Use | Regenerate |
 |---|---|---|
 | `docs/assets/logo.svg`, `logo-tile.svg` | Mark, tile, favicon | by hand |
-| `docs/assets/fonts/*.woff2` | Unbounded, Hanken Grotesk, Martian Mono (OFL) | pyftsubset to Latin, see git log |
+| `docs/assets/fonts/*.woff2` | Geist, Geist Mono (OFL) | pyftsubset to Latin, see git log |
 | `docs/assets/demo.gif` | README demo of the real app | `vhs docs/demo/demo.tape` |
 | `docs/assets/promo.gif`, `promo.mp4` | 6 s loop for posts and ads (1200×630) | `docs/demo/render-promo.sh` |
 | `docs/assets/og.png` | Social preview card | `docs/demo/render-promo.sh` |
