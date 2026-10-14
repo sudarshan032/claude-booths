@@ -18,7 +18,7 @@ that picture, drawn simply: arched booths in indigo, a lamp-amber booth for acti
 
 - Minimum size 20 px (mark) / 16 px (tile). Clear space: one booth width on every side.
 - Don't recolor, outline, stretch, rotate or add shadows. Don't light a side booth.
-- Wordmark: **Claude Booths** in Bricolage Grotesque Bold next to the mark. Commands and paths are lowercase: `claude-booths`.
+- Wordmark: **Claude Booths** in Unbounded SemiBold next to the mark. Commands and paths are lowercase: `claude-booths`.
 
 ## Color
 
@@ -35,8 +35,8 @@ Two brand colors, one neutral ramp, two semantic colors. Nothing else.
 | Background | `--bg` | `#FFFFFF` | Page |
 | Surface | `--surface` / `--surface-2` | `#FAFAFC` / `#F4F4F7` | Inputs, code chips, segmented controls |
 | Border | `--border` | `#E6E4EE` | Hairlines, table rules |
-| Text | `--text` | `#17151F` | Body and headings |
-| Text secondary | `--text-2` | `#5B5868` | Supporting copy. 7:1 on white |
+| Text | `--text` | `#141220` | Body and headings |
+| Text secondary | `--text-2` | `#3F3C52` | Supporting copy. 10:1 on white |
 | Success | `--ok` | `#15803D` | Verified, additions |
 | Danger | `--bad` | `#DC2626` | Errors, deletions |
 
@@ -49,11 +49,16 @@ same primary/secondary with `AdaptiveColor` for light terminals.
 
 | Role | Face | Notes |
 |---|---|---|
-| Display (h1–h3, wordmark) | **Bricolage Grotesque** 600–800 | Self-hosted, subset to Latin, optical size pinned: `docs/assets/fonts/bricolage.woff2` (20 KB). Tight tracking: −0.035em at display sizes |
-| Body and UI | System UI stack | `-apple-system, Segoe UI, Roboto…` no download |
-| Code, keys, terminal | System mono stack | `ui-monospace, SF Mono, Menlo, Consolas` no download |
+| Display (headings, wordmark) | **Unbounded** 600–700 | Wide, signage-like geometric face: booths have signs. Tracking −0.035em at display sizes |
+| Body and UI | **Hanken Grotesk** 400–700 | Warm grotesk with good small-size legibility |
+| Code, keys, the app window | **Martian Mono** 400–700 | Distinctive mono for commands and keycaps |
 
-Scale (desktop): 84 / 48 / 26 / 20 / 17 / 16 / 14. Body line height 1.6, measure under 65ch.
+All three are OFL, self-hosted from `docs/assets/fonts/` and subset to Latin (25 + 21 + 12 KB);
+the two text faces are preloaded. Scale (desktop): 66 / 42 / 24 / 18 / 17 / 15. Body line height
+1.6, measure under 65ch. `text-wrap: balance` on headings.
+
+**Keycaps** are one component (`.k`): indigo-tinted cap with a bottom edge, Martian Mono 600.
+Combos sit side by side (`ctrl` `q`); key + description pairs sit in an indigo-50 pill.
 
 ## Layout and components
 
@@ -72,7 +77,7 @@ Scale (desktop): 84 / 48 / 26 / 20 / 17 / 16 / 14. Body line height 1.6, measure
 
 ## Performance budget (website)
 
-One HTML file with inline CSS/JS, one 20 KB font, inline SVG icons, no frameworks, no third-party
+One HTML file with inline CSS/JS, ~58 KB of self-hosted fonts, inline SVG icons, no frameworks, no third-party
 requests. Images are lazy and sized (no layout shift). Target: under 60 KB before images, first
 paint in one round trip.
 
@@ -95,7 +100,7 @@ keep *"Not affiliated with or endorsed by Anthropic."* wherever the brand appear
 | File | Use | Regenerate |
 |---|---|---|
 | `docs/assets/logo.svg`, `logo-tile.svg` | Mark, tile, favicon | by hand |
-| `docs/assets/fonts/bricolage.woff2` | Display face (OFL) | pyftsubset + varLib.instancer, see git log |
+| `docs/assets/fonts/*.woff2` | Unbounded, Hanken Grotesk, Martian Mono (OFL) | pyftsubset to Latin, see git log |
 | `docs/assets/demo.gif` | README demo of the real app | `vhs docs/demo/demo.tape` |
 | `docs/assets/promo.gif`, `promo.mp4` | 6 s loop for posts and ads (1200×630) | `docs/demo/render-promo.sh` |
 | `docs/assets/og.png` | Social preview card | `docs/demo/render-promo.sh` |

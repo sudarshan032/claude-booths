@@ -4,218 +4,226 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Claude Booths</title>
-<meta name="description" content="Run AI coding chats side by side in one terminal. Each booth gets its own git branch, worktree and tmux session.">
+<meta name="description" content="A terminal workspace for running several Claude Code sessions at once. Every session gets its own booth: a branch, a worktree and a tmux session.">
 <meta name="theme-color" content="#FFFFFF">
 <meta property="og:title" content="Claude Booths">
-<meta property="og:description" content="Run AI coding chats side by side in one terminal. Each booth gets its own branch, worktree and tmux session.">
+<meta property="og:description" content="Run Claude Code in parallel, one booth per task. Every booth has its own branch, worktree and tmux session.">
 <meta property="og:image" content="https://sudarshan032.github.io/claude-booths/assets/og.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="assets/logo-tile.svg" type="image/svg+xml">
-<link rel="preload" href="assets/fonts/bricolage.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/unbounded.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/hanken.woff2" as="font" type="font/woff2" crossorigin>
 <style>
-@font-face { font-family: "Bricolage"; src: url(assets/fonts/bricolage.woff2) format("woff2"); font-weight: 600 800; font-display: swap; }
+@font-face { font-family: "Unbounded"; src: url(assets/fonts/unbounded.woff2) format("woff2"); font-weight: 500 800; font-display: swap; }
+@font-face { font-family: "Hanken Grotesk"; src: url(assets/fonts/hanken.woff2) format("woff2"); font-weight: 100 900; font-display: swap; }
+@font-face { font-family: "Martian Mono"; src: url(assets/fonts/martian.woff2) format("woff2"); font-weight: 100 800; font-display: swap; }
 :root {
   /* primitives */
-  --indigo-50: #F1EFFF; --indigo-100: #E4E0FF; --indigo-500: #5B4BE0; --indigo-600: #4A3BCB; --indigo-900: #2A2170;
-  --amber-100: #FEF3D7; --amber-400: #F5A524; --amber-700: #B45309;
-  --gray-0: #FFFFFF; --gray-25: #FAFAFC; --gray-50: #F4F4F7; --gray-150: #E6E4EE; --gray-300: #C9C6D6; --gray-600: #5B5868; --gray-900: #17151F;
-  --green-700: #15803D; --red-600: #DC2626;
+  --indigo-50: #F1EFFF; --indigo-100: #E4E0FF; --indigo-200: #CEC7FF; --indigo-500: #5B4BE0; --indigo-600: #4A3BCB; --indigo-900: #241C66;
+  --amber-100: #FEF3D7; --amber-400: #F5A524; --amber-700: #A04A06;
+  --gray-0: #FFFFFF; --gray-25: #FAFAFC; --gray-50: #F4F4F8; --gray-150: #E3E1EC; --gray-300: #C4C0D4; --gray-700: #3F3C52; --gray-900: #141220;
+  --green-700: #136C35; --red-600: #C81E1E;
   /* semantic */
   --bg: var(--gray-0); --surface: var(--gray-25); --surface-2: var(--gray-50); --border: var(--gray-150);
-  --text: var(--gray-900); --text-2: var(--gray-600);
-  --primary: var(--indigo-500); --primary-hover: var(--indigo-600); --primary-tint: var(--indigo-50); --on-primary: #FFFFFF;
+  --text: var(--gray-900); --text-2: var(--gray-700);
+  --primary: var(--indigo-500); --primary-hover: var(--indigo-600); --primary-tint: var(--indigo-50); --primary-ink: var(--indigo-900); --on-primary: #FFFFFF;
   --secondary: var(--amber-400); --secondary-tint: var(--amber-100); --secondary-text: var(--amber-700);
   --ok: var(--green-700); --bad: var(--red-600);
   --focus: 0 0 0 3px var(--indigo-100), 0 0 0 4.5px var(--primary);
-  /* terminal (the app replica runs in a dark terminal, like most people's) */
-  --t-bg: #15131F; --t-surface: #1D1A2B; --t-line: #2E2A42; --t-text: #E9E7F2; --t-dim: #8F8BA6;
-  --t-primary: #8B7CFF; --t-secondary: #F5A524; --t-ok: #5BD68A; --t-bad: #FF7A7A; --t-sel: #2B2650;
-  /* type + space */
-  --display: "Bricolage", ui-sans-serif, system-ui, sans-serif;
-  --sans: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+  /* terminal: the app runs in a dark terminal */
+  --t-bg: #15131F; --t-surface: #1D1A2B; --t-line: #2E2A42; --t-text: #ECEAF5; --t-dim: #A6A2BD;
+  --t-primary: #8B7CFF; --t-secondary: #F5A524; --t-ok: #5BD68A; --t-bad: #FF8080; --t-sel: #2B2650;
+  /* type */
+  --display: "Unbounded", ui-sans-serif, system-ui, sans-serif;
+  --sans: "Hanken Grotesk", ui-sans-serif, -apple-system, "Segoe UI", sans-serif;
+  --mono: "Martian Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   --r-sm: 8px; --r-md: 12px; --r-lg: 20px;
 }
 *, *::before, *::after { box-sizing: border-box; }
-html { -webkit-text-size-adjust: 100%; scroll-padding-top: 80px; }
-body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.6 var(--sans); -webkit-font-smoothing: antialiased; }
+html { -webkit-text-size-adjust: 100%; scroll-padding-top: 84px; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 17px/1.6 var(--sans); -webkit-font-smoothing: antialiased; }
 a { color: var(--primary); text-decoration-thickness: 1px; text-underline-offset: 3px; }
 a:hover { color: var(--primary-hover); }
 :focus-visible { outline: none; box-shadow: var(--focus); border-radius: 6px; }
-code, kbd, pre { font-family: var(--mono); font-size: .92em; }
+code, pre { font-family: var(--mono); font-size: .8em; }
 img, svg { display: block; max-width: 100%; }
 .wrap { width: min(1180px, 100% - 32px); margin-inline: auto; }
 .skip { position: absolute; left: -999px; } .skip:focus { left: 16px; top: 12px; z-index: 99; background: var(--bg); padding: 8px 12px; }
 
+/* keycaps: one component, used in hints, docs and the keys section */
+.k { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; padding: 0 8px; border: 1px solid var(--indigo-200); border-radius: 7px;
+  background: linear-gradient(#FFFFFF, var(--primary-tint)); box-shadow: inset 0 -2px 0 var(--indigo-100), 0 1px 1px rgba(36,28,102,.12);
+  color: var(--primary-ink); font: 600 12px/1 var(--mono); white-space: nowrap; vertical-align: middle; }
+.combo { display: inline-flex; align-items: center; gap: 4px; }
+.combo i { color: var(--text-2); font-style: normal; font-size: 13px; }
+
 /* nav */
-.nav { position: sticky; top: 0; z-index: 20; background: rgba(255,255,255,.88); backdrop-filter: saturate(1.4) blur(12px); border-bottom: 1px solid var(--border); }
-.nav .wrap { display: flex; align-items: center; gap: 28px; height: 64px; }
-.brand { display: flex; align-items: center; gap: 10px; color: var(--text); text-decoration: none; font: 700 18px var(--display); letter-spacing: -.01em; }
-.brand svg { width: 30px; height: 30px; }
+.nav { position: sticky; top: 0; z-index: 20; background: rgba(255,255,255,.9); backdrop-filter: saturate(1.4) blur(12px); border-bottom: 1px solid var(--border); }
+.nav .wrap { display: flex; align-items: center; gap: 28px; height: 72px; }
+.brand { display: flex; align-items: center; gap: 12px; color: var(--text); text-decoration: none; font: 600 18px var(--display); letter-spacing: -.02em; }
+.brand img { width: 40px; height: 40px; }
 .nav nav { margin-left: auto; }
-.nav ul { display: flex; gap: 4px; margin: 0; padding: 0; list-style: none; }
-.nav ul a { display: block; padding: 8px 12px; border-radius: var(--r-sm); color: var(--text-2); text-decoration: none; font-size: 15px; transition: color .15s, background .15s; }
-.nav ul a:hover { color: var(--text); background: var(--surface-2); }
-@media (max-width: 760px) { .nav nav { display: none; } .nav .btn { margin-left: auto; } }
+.nav ul { display: flex; gap: 2px; margin: 0; padding: 0; list-style: none; }
+.nav ul a { display: block; padding: 8px 14px; border-radius: var(--r-sm); color: var(--text); text-decoration: none; font-size: 16px; font-weight: 500; transition: background .15s; }
+.nav ul a:hover { background: var(--surface-2); color: var(--text); }
+@media (max-width: 800px) { .nav nav { display: none; } .nav .btn { margin-left: auto; } }
 
 /* buttons */
-.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 0 18px; border-radius: var(--r-md); border: 1px solid transparent; font: 600 15px var(--sans); text-decoration: none; cursor: pointer; transition: background .15s, border-color .15s, color .15s; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 46px; padding: 0 20px; border-radius: var(--r-md); border: 1px solid transparent; font: 650 16px var(--sans); text-decoration: none; cursor: pointer; transition: background .15s, border-color .15s; }
 .btn-primary { background: var(--primary); color: var(--on-primary); }
 .btn-primary:hover { background: var(--primary-hover); color: var(--on-primary); }
-.btn-ghost { background: var(--bg); color: var(--text); border-color: var(--border); }
-.btn-ghost:hover { border-color: var(--gray-300); color: var(--text); }
+.btn-ghost { background: var(--bg); color: var(--text); border-color: var(--gray-300); }
+.btn-ghost:hover { border-color: var(--text); color: var(--text); }
 .btn svg { width: 18px; height: 18px; }
 
 /* hero */
-.hero { padding-top: 72px; padding-bottom: 40px; }
-.hero h1 { max-width: 15ch; margin: 0; font: 800 clamp(44px, 7.4vw, 84px)/.98 var(--display); letter-spacing: -.035em; }
-.hero p.lede { max-width: 58ch; margin: 24px 0 0; color: var(--text-2); font-size: clamp(17px, 2vw, 19px); }
-.actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 32px; }
-.cmd { display: flex; align-items: center; gap: 4px; min-width: 0; max-width: 100%; padding: 4px 4px 4px 16px; border: 1px solid var(--border); border-radius: var(--r-md); background: var(--surface); }
-.cmd code { min-width: 0; overflow-x: auto; white-space: nowrap; scrollbar-width: none; font-size: 14px; color: var(--text); }
-.cmd code::before { content: "$ "; color: var(--text-2); }
-.copy { flex: none; min-width: 72px; min-height: 36px; border: 0; border-radius: var(--r-sm); background: var(--text); color: #fff; font: 600 13px var(--sans); cursor: pointer; }
+.hero { padding-top: 80px; padding-bottom: 36px; }
+.badge { display: inline-flex; align-items: center; gap: 10px; margin-bottom: 28px; padding: 6px 14px 6px 6px; border: 1px solid var(--border); border-radius: 99px; color: var(--text); font-size: 15px; font-weight: 500; text-decoration: none; }
+.badge b { flex: none; white-space: nowrap; padding: 2px 10px; border-radius: 99px; background: var(--secondary-tint); color: var(--secondary-text); font-size: 13px; }
+.hero h1 { max-width: 19ch; text-wrap: balance; margin: 0; font: 700 clamp(36px, 5.6vw, 66px)/1.06 var(--display); letter-spacing: -.035em; }
+.hero h1 span { color: var(--primary); }
+.hero p.lede { max-width: 60ch; margin: 26px 0 0; color: var(--text-2); font-size: clamp(18px, 2vw, 20px); line-height: 1.55; }
+.actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 34px; }
+.cmd { display: flex; align-items: center; gap: 6px; min-width: 0; max-width: 100%; padding: 5px 5px 5px 16px; border: 1px solid var(--gray-300); border-radius: var(--r-md); background: var(--surface); }
+.cmd code { min-width: 0; overflow-x: auto; white-space: nowrap; scrollbar-width: none; color: var(--text); }
+.cmd code::before { content: "$ "; color: var(--primary); }
+.copy { flex: none; min-width: 76px; min-height: 36px; border: 0; border-radius: var(--r-sm); background: var(--text); color: #fff; font: 650 14px var(--sans); cursor: pointer; }
 .copy:hover { background: #000; }
 .copy[data-done] { background: var(--ok); }
-.facts { display: flex; flex-wrap: wrap; gap: 8px 22px; margin: 22px 0 0; padding: 0; list-style: none; color: var(--text-2); font-size: 14px; }
-.facts li { display: flex; align-items: center; gap: 8px; }
-.facts svg { width: 16px; height: 16px; color: var(--primary); }
 
 /* ---------- the app replica ---------- */
-.stage { padding-top: 24px; padding-bottom: 8px; }
-.window { border-radius: 14px; background: var(--t-bg); color: var(--t-text); box-shadow: 0 1px 0 rgba(23,21,31,.04), 0 24px 60px -24px rgba(42,33,112,.35), 0 0 0 1px rgba(23,21,31,.08); overflow: hidden; }
-.titlebar { display: flex; align-items: center; gap: 8px; height: 38px; padding: 0 14px; background: #1B1828; border-bottom: 1px solid var(--t-line); font: 12.5px var(--sans); color: var(--t-dim); }
-.titlebar i { width: 12px; height: 12px; border-radius: 50%; background: #3A3550; }
+.stage { padding-top: 28px; }
+.window { border-radius: 14px; background: var(--t-bg); color: var(--t-text); box-shadow: 0 30px 70px -30px rgba(36,28,102,.45), 0 0 0 1px rgba(20,18,32,.1); overflow: hidden; }
+.titlebar { display: flex; align-items: center; gap: 8px; height: 38px; padding: 0 14px; background: #1B1828; border-bottom: 1px solid var(--t-line); font: 13px var(--sans); color: var(--t-dim); }
+.titlebar i { width: 12px; height: 12px; border-radius: 50%; }
 .titlebar i:nth-child(1) { background: #FF5F57; } .titlebar i:nth-child(2) { background: #FEBC2E; } .titlebar i:nth-child(3) { background: #28C840; }
 .titlebar span { margin: 0 auto; transform: translateX(-26px); }
-.app { --pri: var(--t-primary); --sec: var(--t-secondary); position: relative; display: grid; grid-template-columns: minmax(220px, 30%) 1fr; grid-template-rows: 1fr auto; gap: 0 14px; height: 560px; padding: 14px 16px 8px; font: 13px/1.5 var(--mono); outline: none; }
+.app { --pri: var(--t-primary); --sec: var(--t-secondary); position: relative; display: grid; grid-template-columns: minmax(230px, 30%) 1fr; grid-template-rows: 1fr auto; gap: 0 16px; height: 580px; padding: 16px 18px 8px; font: 12.5px/1.6 var(--mono); outline: none; }
 .app:focus-visible { box-shadow: inset 0 0 0 2px var(--pri); border-radius: 0; }
 .list { min-width: 0; overflow: hidden; }
-.list h2 { margin: 4px 0 14px 4px; padding-left: 8px; border-left: 3px solid var(--sec); color: var(--pri); font: 600 13px var(--mono); }
+.list h2 { margin: 2px 0 14px 4px; padding-left: 9px; border-left: 3px solid var(--sec); color: var(--pri); font: 600 12.5px var(--mono); }
 .list h2 span { margin-left: 10px; color: var(--t-dim); font-weight: 400; }
-.booth { display: grid; grid-template-columns: 22px 1fr auto; gap: 0 6px; width: 100%; padding: 8px 10px; border: 0; border-radius: 6px; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.booth { display: grid; grid-template-columns: 22px 1fr auto; gap: 2px 6px; width: 100%; padding: 9px 10px; border: 0; border-radius: 6px; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; touch-action: manipulation; }
 .booth + .booth { margin-top: 6px; }
-.booth:hover { background: rgba(255,255,255,.04); }
+.booth:hover { background: rgba(255,255,255,.05); }
 .booth[aria-selected="true"] { background: var(--t-sel); }
 .booth .n { color: var(--t-dim); }
-.booth .t { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-weight: 600; }
+.booth .t { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-weight: 700; }
 .booth .st { color: var(--t-ok); } .booth .st.busy { color: var(--sec); }
 .booth .br { grid-column: 2 / 3; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; color: var(--t-dim); }
 .booth .df { color: var(--t-ok); } .booth .df b { color: var(--t-bad); font-weight: 400; }
 .pane { display: grid; grid-template-rows: auto 1fr; min-width: 0; min-height: 0; }
 .tabs { display: flex; }
-.tab { flex: 1; min-height: 32px; border: 0; border-bottom: 2px solid transparent; background: none; color: var(--t-dim); font: inherit; cursor: pointer; }
-.tab[aria-selected="true"] { color: var(--pri); border-bottom-color: var(--pri); font-weight: 600; }
-.view { position: relative; min-height: 0; overflow: hidden; border: 1px solid var(--t-line); border-radius: 0 0 8px 8px; padding: 10px 14px; white-space: pre-wrap; word-break: break-word; }
+.tab { flex: 1; min-height: 34px; border: 0; border-bottom: 2px solid var(--t-line); background: none; color: var(--t-dim); font: inherit; cursor: pointer; }
+.tab[aria-selected="true"] { color: var(--pri); border-bottom-color: var(--pri); font-weight: 700; }
+.view { position: relative; min-height: 0; overflow: hidden; border: 1px solid var(--t-line); border-top: 0; border-radius: 0 0 8px 8px; padding: 12px 16px; white-space: pre-wrap; word-break: break-word; }
 .menu { grid-column: 1 / -1; padding: 10px 6px 4px; color: var(--t-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.menu b { color: var(--t-text); font-weight: 600; } .menu .sep { color: var(--t-line); padding: 0 6px; }
-/* claude code look inside the pane */
-.cc-head { display: grid; grid-template-columns: auto 1fr; gap: 0 14px; margin-bottom: 12px; }
-.cc-mark { color: var(--sec); font-size: 18px; line-height: 1.2; }
+.menu b { color: var(--t-text); } .menu .sep { color: var(--t-line); padding: 0 6px; }
+.cc-head { display: grid; grid-template-columns: auto 1fr; gap: 0 12px; margin-bottom: 12px; }
+.cc-mark { color: var(--sec); font-size: 18px; line-height: 1.25; }
 .dim { color: var(--t-dim); } .pri { color: var(--pri); } .sec { color: var(--sec); } .ok { color: var(--t-ok); } .bad { color: var(--t-bad); }
-.rule { color: var(--t-line); overflow: hidden; white-space: nowrap; }
+.rule { display: block; height: 0; margin: 6px 0; border-top: 1px solid var(--t-line); }
+.foot { display: flex; justify-content: space-between; color: var(--t-dim); }
 .cursor { display: inline-block; width: .6em; height: 1.15em; vertical-align: -.2em; background: var(--t-text); animation: blink 1.1s steps(1) infinite; }
 @keyframes blink { 50% { opacity: 0; } }
-/* full-screen ("step inside") */
 .app.inside { grid-template-columns: 1fr; }
-.app.inside .list, .app.inside .tabs { display: none; }
-.app.inside .view { border-radius: 8px; }
-.statusbar { display: none; margin: 0 -16px -8px; padding: 3px 16px; background: var(--pri); color: var(--t-bg); font-weight: 600; }
+.app.inside .list, .app.inside .tabs, .app.inside .menu { display: none; }
+.app.inside .view { border-top: 1px solid var(--t-line); border-radius: 8px; }
+.statusbar { display: none; margin: 0 -18px -8px; padding: 3px 18px; background: var(--pri); color: var(--t-bg); font-weight: 700; white-space: nowrap; overflow: hidden; }
 .app.inside .statusbar { display: block; }
-.app.inside .menu { display: none; }
-/* dialog */
-.dialog { position: absolute; inset: 0; display: grid; place-items: center; background: rgba(10,9,16,.55); }
+.dialog { position: absolute; inset: 0; display: grid; place-items: center; background: rgba(10,9,16,.6); }
 .dialog[hidden] { display: none; }
-.dialog form { width: min(520px, 92%); padding: 18px 20px; border: 1px solid var(--pri); border-radius: 10px; background: var(--t-surface); }
-.dialog label { display: block; margin: 0 0 6px; color: var(--t-dim); }
-.dialog input { width: 100%; margin-bottom: 14px; padding: 8px 10px; border: 1px solid var(--t-line); border-radius: 6px; background: var(--t-bg); color: var(--t-text); font: inherit; }
+.dialog form { width: min(540px, 92%); padding: 20px 22px; border: 1px solid var(--pri); border-radius: 10px; background: var(--t-surface); }
+.dialog label { display: block; margin: 0 0 6px; color: var(--pri); font-weight: 700; }
+.dialog input { width: 100%; margin-bottom: 16px; padding: 9px 10px; border: 1px solid var(--t-line); border-radius: 6px; background: var(--t-bg); color: var(--t-text); font: inherit; }
 .dialog input:focus { outline: none; border-color: var(--pri); }
 .dialog .row { display: flex; justify-content: space-between; align-items: center; color: var(--t-dim); }
-.dialog button { padding: 6px 14px; border: 0; border-radius: 6px; background: var(--pri); color: var(--t-bg); font: 600 13px var(--mono); cursor: pointer; }
-.hint { margin: 16px 2px 0; color: var(--text-2); font-size: 14px; line-height: 2.1; }
-.hint kbd { display: inline-block; min-width: 26px; padding: 2px 7px; border: 1px solid var(--border); border-bottom-width: 2px; border-radius: 6px; background: var(--bg); color: var(--text); text-align: center; font-size: 12.5px; }
+.dialog button { padding: 7px 14px; border: 0; border-radius: 6px; background: var(--pri); color: var(--t-bg); font: 700 12.5px var(--mono); cursor: pointer; }
+.tryit { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 18px 0 0; padding: 0; list-style: none; }
+.tryit li.lead { padding-left: 0; background: none; color: var(--text); font-weight: 700; }
+.tryit li { display: inline-flex; align-items: center; gap: 8px; padding: 5px 12px 5px 6px; border-radius: 99px; background: var(--primary-tint); color: var(--primary-ink); font-size: 15px; font-weight: 550; }
 @media (max-width: 760px) {
-  .app { grid-template-columns: 1fr; grid-template-rows: auto 1fr auto; height: 620px; padding: 12px; }
-  .list .booth .br { display: none; }
-  .menu { display: none; }
+  .app { grid-template-columns: 1fr; grid-template-rows: auto 1fr; height: 640px; padding: 12px; }
+  .list .booth .br, .menu { display: none; }
+  .foot span + span { display: none; }
 }
 
 /* sections */
-.section { padding-top: 112px; }
-.section > .wrap > h2, .section h2.h { max-width: 22ch; margin: 0; font: 700 clamp(32px, 4.4vw, 48px)/1.05 var(--display); letter-spacing: -.03em; }
-.section .intro { max-width: 62ch; margin: 16px 0 0; color: var(--text-2); font-size: 17px; }
+.section { padding-top: 120px; }
+.section h2.h { max-width: 24ch; text-wrap: balance; margin: 0; font: 700 clamp(28px, 3.6vw, 42px)/1.12 var(--display); letter-spacing: -.03em; }
+.section .intro { max-width: 64ch; margin: 18px 0 0; color: var(--text-2); font-size: 18px; }
+.section .intro code, .steps p code, .anatomy code, .needs code { padding: 2px 7px; border-radius: 6px; background: var(--surface-2); color: var(--text); }
 
-/* booth anatomy */
-.anatomy { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; margin-top: 48px; border-top: 1px solid var(--border); }
-.anatomy > div { padding: 28px 28px 0 0; }
-.anatomy > div + div { padding-left: 28px; border-left: 1px solid var(--border); }
-.anatomy svg { width: 28px; height: 28px; color: var(--primary); }
-.anatomy h3 { margin: 16px 0 6px; font: 700 20px var(--display); letter-spacing: -.01em; }
+.anatomy { display: grid; grid-template-columns: repeat(3, 1fr); margin-top: 52px; border-top: 1px solid var(--border); }
+.anatomy > div { padding: 30px 30px 0 0; }
+.anatomy > div + div { padding-left: 30px; border-left: 1px solid var(--border); }
+.anatomy svg { width: 30px; height: 30px; color: var(--primary); }
+.anatomy h3 { margin: 18px 0 8px; font: 600 18px/1.3 var(--display); letter-spacing: -.02em; }
 .anatomy p { margin: 0; color: var(--text-2); }
-@media (max-width: 860px) { .anatomy { grid-template-columns: 1fr; } .anatomy > div + div { padding-left: 0; border-left: 0; border-top: 1px solid var(--border); margin-top: 28px; } }
+@media (max-width: 860px) { .anatomy { grid-template-columns: 1fr; } .anatomy > div + div { padding-left: 0; border-left: 0; border-top: 1px solid var(--border); margin-top: 30px; } }
 
-/* steps with screenshots */
-.steps { display: grid; gap: 72px; margin: 56px 0 0; padding: 0; list-style: none; counter-reset: step; }
-.steps li { display: grid; grid-template-columns: 5fr 7fr; gap: 48px; align-items: center; counter-increment: step; }
+.steps { display: grid; gap: 80px; margin: 64px 0 0; padding: 0; list-style: none; counter-reset: step; }
+.steps li { display: grid; grid-template-columns: 5fr 7fr; gap: 56px; align-items: center; counter-increment: step; }
 .steps li:nth-child(even) { grid-template-columns: 7fr 5fr; }
 .steps li:nth-child(even) .copytext { order: 2; }
-.steps .copytext::before { content: counter(step); display: grid; place-items: center; width: 36px; height: 36px; margin-bottom: 18px; border-radius: 50%; background: var(--primary-tint); color: var(--primary); font: 700 16px var(--display); }
-.steps h3 { margin: 0 0 10px; font: 700 26px/1.15 var(--display); letter-spacing: -.02em; }
+.steps .copytext::before { content: counter(step); display: grid; place-items: center; width: 38px; height: 38px; margin-bottom: 20px; border-radius: 50%; background: var(--primary); color: #fff; font: 700 15px var(--display); }
+.steps h3 { margin: 0 0 12px; font: 600 24px/1.2 var(--display); letter-spacing: -.025em; }
 .steps p { margin: 0; color: var(--text-2); }
-.steps p code, .anatomy code { padding: 1px 6px; border-radius: 5px; background: var(--surface-2); color: var(--text); }
 @media (max-width: 860px) { .steps li, .steps li:nth-child(even) { grid-template-columns: 1fr; gap: 24px; } .steps li:nth-child(even) .copytext { order: 0; } }
 .shot { margin: 0; }
-.shotimg { width: 100%; height: auto; border-radius: var(--r-lg); background: #F1EFFF; box-shadow: 0 0 0 1px var(--border); }
-.shot figcaption { margin-top: 10px; color: var(--text-2); font-size: 14px; }
+.shotimg { width: 100%; height: auto; border-radius: var(--r-lg); background: var(--primary-tint); box-shadow: 0 0 0 1px var(--border), 0 20px 50px -30px rgba(36,28,102,.35); }
+.shot figcaption { margin-top: 12px; color: var(--text-2); font-size: 15px; }
 
-/* compatibility */
-.compat { width: 100%; margin-top: 40px; border-collapse: collapse; font-size: 15px; }
-.compat th, .compat td { padding: 14px 16px; border-bottom: 1px solid var(--border); text-align: left; }
-.compat thead th { color: var(--text-2); font-weight: 600; font-size: 14px; }
-.compat tbody th { font-weight: 600; }
-.compat td.note { color: var(--text-2); font-size: 14px; }
-.pill { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 99px; font-size: 13px; font-weight: 600; white-space: nowrap; }
+.compat { width: 100%; margin-top: 44px; border-collapse: collapse; }
+.compat th, .compat td { padding: 15px 16px; border-bottom: 1px solid var(--border); text-align: left; }
+.compat thead th { color: var(--text-2); font-weight: 650; font-size: 15px; }
+.compat tbody th { font-weight: 650; }
+.compat td.note code { color: var(--text); }
+.pill { display: inline-flex; align-items: center; gap: 7px; padding: 4px 11px; border-radius: 99px; font-size: 14px; font-weight: 650; white-space: nowrap; }
 .pill::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
-.pill.yes { background: #E8F7EE; color: var(--ok); }
+.pill.yes { background: #E3F5EA; color: var(--ok); }
 .pill.wip { background: var(--secondary-tint); color: var(--secondary-text); }
 .pill.no { background: var(--surface-2); color: var(--text-2); }
 .tablewrap { overflow-x: auto; }
-@media (max-width: 640px) { .compat td.note { display: none; } }
+@media (max-width: 640px) { .compat td.note, .compat th.note { display: none; } }
 
 /* keys */
-.keys { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 0 40px; margin-top: 40px; }
-.keys div { display: flex; align-items: center; gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--border); color: var(--text-2); }
-.keys kbd { flex: none; min-width: 58px; padding: 4px 8px; border: 1px solid var(--border); border-bottom-width: 2px; border-radius: 7px; background: var(--bg); color: var(--text); text-align: center; font-size: 13px; }
+.keygroups { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 44px; }
+@media (max-width: 1000px) { .keygroups { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 560px) { .keygroups { grid-template-columns: 1fr; } }
+.keygroup { padding: 22px 22px 10px; border: 1px solid var(--border); border-radius: var(--r-lg); background: var(--surface); }
+.keygroup h3 { margin: 0 0 12px; font: 600 15px var(--display); letter-spacing: -.01em; }
+.keygroup dl { margin: 0; }
+.keygroup div { display: grid; grid-template-columns: 92px 1fr; align-items: center; gap: 12px; padding: 10px 0; border-top: 1px solid var(--border); }
+.keygroup dt { display: flex; gap: 4px; }
+.keygroup dd { margin: 0; color: var(--text-2); font-size: 15.5px; line-height: 1.35; }
 
 /* install */
-.install { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; margin-top: 40px; }
+.install { display: grid; grid-template-columns: 1.2fr 1fr; gap: 56px; margin-top: 44px; }
 @media (max-width: 860px) { .install { grid-template-columns: 1fr; } }
 .seg { display: inline-flex; padding: 4px; border-radius: var(--r-md); background: var(--surface-2); }
-.seg button { min-height: 36px; padding: 0 14px; border: 0; border-radius: var(--r-sm); background: none; color: var(--text-2); font: 600 14px var(--sans); cursor: pointer; }
-.seg button[aria-selected="true"] { background: var(--bg); color: var(--text); box-shadow: 0 1px 2px rgba(23,21,31,.08), 0 0 0 1px var(--border); }
-.code { margin: 14px 0 0; padding: 16px 18px; border-radius: var(--r-md); background: var(--gray-900); color: #F3F2F8; overflow-x: auto; font-size: 14px; line-height: 1.7; }
-.code .c { color: #9893AE; }
+.seg button { min-height: 38px; padding: 0 16px; border: 0; border-radius: var(--r-sm); background: none; color: var(--text-2); font: 650 15px var(--sans); cursor: pointer; }
+.seg button[aria-selected="true"] { background: var(--bg); color: var(--text); box-shadow: 0 1px 2px rgba(20,18,32,.1), 0 0 0 1px var(--border); }
+.code { margin: 14px 0 0; padding: 18px 20px; border-radius: var(--r-md); background: var(--gray-900); color: #F3F2F8; overflow-x: auto; line-height: 1.9; }
+.code .c { color: #A9A4C2; }
 .needs { margin: 0; padding: 0; list-style: none; }
-.needs li { display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); }
-.needs li b { min-width: 64px; }
+.needs li { display: grid; grid-template-columns: 90px 1fr; gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--border); }
+.needs li b { font-weight: 650; }
 .needs li span { color: var(--text-2); }
 
-/* closing */
-.close { margin-top: 112px; padding: 64px 0; border-top: 1px solid var(--border); background: linear-gradient(var(--primary-tint), var(--bg)); text-align: center; }
-.close svg.mark { width: 64px; height: 64px; margin: 0 auto 20px; }
-.close h2 { margin: 0 auto; max-width: 20ch; font: 800 clamp(34px, 5vw, 56px)/1.02 var(--display); letter-spacing: -.035em; }
+.close { margin-top: 120px; padding: 72px 0; border-top: 1px solid var(--border); background: linear-gradient(var(--primary-tint), var(--bg)); text-align: center; }
+.close img { width: 72px; height: 72px; margin: 0 auto 24px; }
+.close h2 { margin: 0 auto; max-width: 22ch; font: 700 clamp(28px, 4vw, 46px)/1.1 var(--display); letter-spacing: -.035em; }
 .close .actions { justify-content: center; }
-footer { padding: 36px 0 48px; color: var(--text-2); font-size: 14px; }
+footer { padding: 36px 0 52px; color: var(--text-2); font-size: 15px; }
 footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px 32px; }
 footer p { margin: 0; }
-
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
 </style>
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
-  <symbol id="mark" viewBox="0 0 48 48"><path d="M5 40V22a6 6 0 0 1 12 0v18M31 40V22a6 6 0 0 1 12 0v18" fill="none" stroke="#5B4BE0" stroke-width="3.2" stroke-linejoin="round"/><path d="M17.5 40V17a6.5 6.5 0 0 1 13 0v23Z" fill="#F5A524"/><rect x="20.5" y="22" width="7" height="5" rx="1.6" fill="#17151F"/><rect x="2" y="39" width="44" height="3.4" rx="1.7" fill="#5B4BE0"/></symbol>
   <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
   <symbol id="i-gh" viewBox="0 0 24 24"><path fill="currentColor" d="M12 .5a11.5 11.5 0 0 0-3.6 22.4c.6.1.8-.3.8-.6v-2c-3.2.7-3.9-1.5-3.9-1.5-.5-1.3-1.3-1.7-1.3-1.7-1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.7-1.6-2.6-.3-5.3-1.3-5.3-5.7 0-1.3.5-2.3 1.2-3.1-.1-.3-.5-1.5.1-3.1 0 0 1-.3 3.2 1.2a11 11 0 0 1 5.8 0c2.2-1.5 3.2-1.2 3.2-1.2.6 1.6.2 2.8.1 3.1.8.8 1.2 1.9 1.2 3.1 0 4.4-2.7 5.4-5.3 5.7.4.4.8 1.1.8 2.2v3.2c0 .3.2.7.8.6A11.5 11.5 0 0 0 12 .5Z"/></symbol>
   <symbol id="i-branch" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="6" cy="5" r="2.5"/><circle cx="6" cy="19" r="2.5"/><circle cx="18" cy="7" r="2.5"/><path d="M6 7.5v9M18 9.5c0 4-6 3.5-11 7"/></g></symbol>
@@ -225,7 +233,7 @@ footer p { margin: 0; }
 
 <header class="nav">
   <div class="wrap">
-    <a class="brand" href="#top" aria-label="Claude Booths home"><svg aria-hidden="true"><use href="#mark"/></svg>Claude Booths</a>
+    <a class="brand" href="#top" aria-label="Claude Booths home"><img src="assets/logo-tile.svg" width="40" height="40" alt="">Claude Booths</a>
     <nav aria-label="Main"><ul>
       <li><a href="#how">How it works</a></li>
       <li><a href="#agents">Agents</a></li>
@@ -238,24 +246,19 @@ footer p { margin: 0; }
 
 <main id="main">
   <section class="hero wrap" id="top">
-    <h1>Run your AI coding chats side by side.</h1>
-    <p class="lede">Claude Booths opens each chat in its own booth: a private git branch, worktree and tmux session. Watch every booth live, step into one when it needs you, and ship the branches that are done.</p>
+    <a class="badge" href="https://github.com/sudarshan032/claude-booths"><b>Open source</b>AGPL-3.0 · macOS and Linux</a>
+    <h1>Run Claude Code in parallel, <span>one booth per task.</span></h1>
+    <p class="lede">Claude Booths is a terminal workspace for running several Claude Code sessions at once. Each session lives in its own booth, with its own branch, worktree and tmux session, so a bug fix, a refactor and a new test suite can move forward together without touching each other's files.</p>
     <div class="actions">
       <div class="cmd"><code id="cmd-hero">curl -fsSL https://raw.githubusercontent.com/sudarshan032/claude-booths/main/install.sh | bash</code><button class="copy" type="button" data-copy="cmd-hero">Copy</button></div>
       <a class="btn btn-ghost" href="https://github.com/sudarshan032/claude-booths"><svg aria-hidden="true"><use href="#i-gh"/></svg>View on GitHub</a>
     </div>
-    <ul class="facts">
-      <li><svg aria-hidden="true"><use href="#i-check"/></svg>Free and open source (AGPL-3.0)</li>
-      <li><svg aria-hidden="true"><use href="#i-check"/></svg>macOS and Linux</li>
-      <li><svg aria-hidden="true"><use href="#i-check"/></svg>Starts Claude Code by default</li>
-    </ul>
   </section>
 
-  <section class="stage wrap" aria-labelledby="try-title">
-    <h2 id="try-title" class="skip">Try the app</h2>
+  <section class="stage wrap" aria-label="Interactive demo">
     <div class="window">
       <div class="titlebar"><i></i><i></i><i></i><span>claude-booths — ~/code/acme-shop</span></div>
-      <div class="app" id="app" tabindex="0" role="application" aria-label="Interactive Claude Booths demo. Keys: j and k move, Tab switches tabs, Shift+N opens a booth, Enter steps inside, Control+Q steps out, t changes theme.">
+      <div class="app" id="app" tabindex="0" role="application" aria-label="Interactive Claude Booths demo. j and k move between booths, Tab switches views, Shift+N opens a booth, Enter steps inside, Control+Q steps out, t changes the theme.">
         <div class="list">
           <h2>booths<span id="count">3 open</span></h2>
           <div id="booths" role="listbox" aria-label="Booths"></div>
@@ -266,7 +269,7 @@ footer p { margin: 0; }
             <button class="tab" role="tab" data-tab="diff" aria-selected="false">Diff</button>
             <button class="tab" role="tab" data-tab="terminal" aria-selected="false">Terminal</button>
           </div>
-          <div class="view" id="view" aria-live="off"></div>
+          <div class="view" id="view"></div>
         </div>
         <div class="menu"><b>n</b> new  <b>D</b> kill <span class="sep">┊</span> <b>↵/o</b> open  <b>p</b> push branch  <b>c</b> checkout <span class="sep">┊</span> <b>tab</b> switch tab  <b>?</b> help <span class="sep">┊</span> <b>t</b> theme  <b>q</b> quit</div>
         <div class="statusbar" id="statusbar"></div>
@@ -279,31 +282,39 @@ footer p { margin: 0; }
         </div>
       </div>
     </div>
-    <p class="hint">Click the window, then try <kbd>j</kbd><kbd>k</kbd> to move, <kbd>tab</kbd> to switch views, <kbd>N</kbd> to open a booth, <kbd>↵</kbd> to step inside, <kbd>ctrl</kbd>+<kbd>q</kbd> to step out, <kbd>t</kbd> for themes. On a phone, tap booths and tabs.</p>
+    <ul class="tryit" aria-label="Try these keys in the demo">
+      <li class="lead">Try it</li>
+      <li><span class="combo"><span class="k">j</span><span class="k">k</span></span>switch booth</li>
+      <li><span class="k">tab</span>preview, diff, terminal</li>
+      <li><span class="k">N</span>open a booth</li>
+      <li><span class="k">↵</span>step inside</li>
+      <li><span class="combo"><span class="k">ctrl</span><i>+</i><span class="k">q</span></span>step out</li>
+      <li><span class="k">t</span>theme</li>
+    </ul>
   </section>
 
   <section class="section" id="how">
     <div class="wrap">
-      <h2 class="h">One task per booth. Nothing collides.</h2>
-      <p class="intro">Two chats editing the same folder overwrite each other. A booth gives each chat its own copy of your repo, so you can run five at once and merge only what works.</p>
+      <h2 class="h">Parallel work, without the cleanup.</h2>
+      <p class="intro">Two sessions in one folder overwrite each other's edits. A booth is an isolated copy of your repository, so every session works on its own branch and you decide what gets merged.</p>
       <div class="anatomy">
-        <div><svg aria-hidden="true"><use href="#i-branch"/></svg><h3>Its own branch and worktree</h3><p>Cut from your current commit. Edits stay in the booth until you push or check them out.</p></div>
-        <div><svg aria-hidden="true"><use href="#i-term"/></svg><h3>Its own tmux session</h3><p>The agent keeps running when you look away, quit the app or close the terminal.</p></div>
-        <div><svg aria-hidden="true"><use href="#i-eye"/></svg><h3>Live preview and diff</h3><p>Output streams the moment it changes. Idle booths use no CPU: there is no polling.</p></div>
+        <div><svg aria-hidden="true"><use href="#i-branch"/></svg><h3>A branch of its own</h3><p>Each booth is a git worktree cut from your current commit. Nothing it writes reaches your main checkout until you push it or check it out.</p></div>
+        <div><svg aria-hidden="true"><use href="#i-term"/></svg><h3>A session that keeps running</h3><p>Every booth runs in tmux. Quit the app or close the terminal and come back later: the session is exactly where you left it.</p></div>
+        <div><svg aria-hidden="true"><use href="#i-eye"/></svg><h3>Live output, no polling</h3><p>Previews stream from tmux the moment the screen changes. A booth that's waiting on you uses no CPU at all.</p></div>
       </div>
 
       <ol class="steps">
         <li>
-          <div class="copytext"><h3>Open a booth and say what you need</h3><p>Press <code>N</code>, name the booth and type the task. Claude Booths creates the branch and worktree and hands your prompt to the agent.</p></div>
-          <figure class="shot"><img class="shotimg" src="assets/shot-new.webp" width="1440" height="900" loading="lazy" decoding="async" alt="The new booth dialog: name, prompt and branch"><figcaption>Name, prompt and branch in one dialog.</figcaption></figure>
+          <div class="copytext"><h3>Describe the task</h3><p>Press <code>N</code>, name the booth and write the prompt. Claude Booths creates the branch and worktree, starts Claude Code and hands it your prompt.</p></div>
+          <figure class="shot"><img class="shotimg" src="assets/shot-new.webp" width="1440" height="900" loading="lazy" decoding="async" alt="The new booth dialog with a name, a prompt and the branch picker"><figcaption>Name, prompt and branch in one dialog.</figcaption></figure>
         </li>
         <li>
-          <div class="copytext"><h3>Let them work in parallel</h3><p>Open as many booths as you like. The list shows which are working and which are waiting for you; move with <code>j</code> and <code>k</code> to glance at each one.</p></div>
-          <figure class="shot"><img class="shotimg" src="assets/shot-booths.webp" width="1440" height="900" loading="lazy" decoding="async" alt="Three booths open; the selected one shows Claude Code's finished answer"><figcaption>Live previews for every booth.</figcaption></figure>
+          <div class="copytext"><h3>Keep several going</h3><p>Open a booth for every task on your list. The sidebar shows which sessions are working and which are waiting on you, and <code>j</code> / <code>k</code> flip between their live screens.</p></div>
+          <figure class="shot"><img class="shotimg" src="assets/shot-booths.webp" width="1440" height="900" loading="lazy" decoding="async" alt="Three booths in the sidebar; the selected one shows Claude Code's finished answer"><figcaption>Three sessions, three branches, one screen.</figcaption></figure>
         </li>
         <li>
-          <div class="copytext"><h3>Review the diff, then ship it</h3><p>The diff tab shows exactly what changed. Press <code>p</code> to commit and push the branch for a pull request, or <code>c</code> to check it out locally.</p></div>
-          <figure class="shot"><img class="shotimg" src="assets/shot-diff.webp" width="1440" height="900" loading="lazy" decoding="async" alt="The diff tab showing the change Claude Code made"><figcaption>Every change, before it reaches your main branch.</figcaption></figure>
+          <div class="copytext"><h3>Review, then ship</h3><p>The Diff tab shows exactly what changed in the booth. Press <code>p</code> to commit and push the branch for a pull request, or <code>c</code> to check it out in your main folder.</p></div>
+          <figure class="shot"><img class="shotimg" src="assets/shot-diff.webp" width="1440" height="900" loading="lazy" decoding="async" alt="The Diff tab showing the change Claude Code made to src/auth.ts"><figcaption>Every change, before it reaches main.</figcaption></figure>
         </li>
       </ol>
     </div>
@@ -311,8 +322,8 @@ footer p { margin: 0; }
 
   <section class="section" id="agents">
     <div class="wrap">
-      <h2 class="h">Works with the agent you already use.</h2>
-      <p class="intro">Claude Code runs by default. Any terminal agent starts with <code>-p</code>. This table only marks an agent as verified after we have tested the full flow on that system: open, prompt, diff, step in and out, restore, delete.</p>
+      <h2 class="h">Bring the agent you already use.</h2>
+      <p class="intro">Claude Code is the default, and any agent that runs in a terminal starts with <code>-p</code>. We mark an agent as verified only after the complete flow passes on that system: open with a prompt, live preview, diff, step in and out, restore after a restart, delete.</p>
       <div class="tablewrap">
         <table class="compat" id="compat">
           <thead><tr><th scope="col">Agent</th><th scope="col">macOS</th><th scope="col">Linux</th><th scope="col" class="note">Start it with</th></tr></thead>
@@ -324,41 +335,59 @@ footer p { margin: 0; }
 
   <section class="section" id="keys">
     <div class="wrap">
-      <h2 class="h">Everything is a keystroke away.</h2>
-      <div class="keys">
-        <div><kbd>n</kbd>Open a booth</div><div><kbd>N</kbd>Open a booth with a prompt</div><div><kbd>j</kbd> <kbd>k</kbd>Move between booths</div>
-        <div><kbd>↵</kbd>Step inside a booth</div><div><kbd>ctrl q</kbd>Step back out</div><div><kbd>tab</kbd>Preview, diff, terminal</div>
-        <div><kbd>p</kbd>Commit and push the branch</div><div><kbd>c</kbd>Check out and pause</div><div><kbd>r</kbd>Resume a paused booth</div>
-        <div><kbd>D</kbd>Delete a booth</div><div><kbd>t</kbd>Change theme</div><div><kbd>?</kbd>Help</div>
+      <h2 class="h">Driven entirely from the keyboard.</h2>
+      <div class="keygroups">
+        <div class="keygroup"><h3>Booths</h3><dl>
+          <div><dt><span class="k">n</span></dt><dd>Open a booth</dd></div>
+          <div><dt><span class="k">N</span></dt><dd>Open a booth with a prompt</dd></div>
+          <div><dt><span class="k">j</span><span class="k">k</span></dt><dd>Move between booths</dd></div>
+          <div><dt><span class="k">D</span></dt><dd>Delete a booth</dd></div>
+        </dl></div>
+        <div class="keygroup"><h3>Inside a booth</h3><dl>
+          <div><dt><span class="k">↵</span></dt><dd>Step inside, full screen</dd></div>
+          <div><dt><span class="combo"><span class="k">ctrl</span><span class="k">q</span></span></dt><dd>Step back out</dd></div>
+          <div><dt><span class="k">tab</span></dt><dd>Preview, diff or terminal</dd></div>
+          <div><dt><span class="combo"><span class="k">shift</span><span class="k">↑↓</span></span></dt><dd>Scroll the history</dd></div>
+        </dl></div>
+        <div class="keygroup"><h3>Shipping</h3><dl>
+          <div><dt><span class="k">p</span></dt><dd>Commit and push the branch</dd></div>
+          <div><dt><span class="k">c</span></dt><dd>Check out and pause</dd></div>
+          <div><dt><span class="k">r</span></dt><dd>Resume a paused booth</dd></div>
+        </dl></div>
+        <div class="keygroup"><h3>App</h3><dl>
+          <div><dt><span class="k">t</span></dt><dd>Next theme</dd></div>
+          <div><dt><span class="k">?</span></dt><dd>Help</dd></div>
+          <div><dt><span class="k">q</span></dt><dd>Quit; booths keep running</dd></div>
+        </dl></div>
       </div>
     </div>
   </section>
 
   <section class="section" id="install">
     <div class="wrap">
-      <h2 class="h">Install in a minute.</h2>
+      <h2 class="h">Up and running in a minute.</h2>
       <div class="install">
         <div>
           <div class="seg" role="tablist" aria-label="Install method">
             <button role="tab" aria-selected="true" data-inst="script">Install script</button>
             <button role="tab" aria-selected="false" data-inst="source">From source</button>
           </div>
-          <pre class="code" id="inst-script"><span class="c"># puts claude-booths in ~/.local/bin</span>
+          <pre class="code" id="inst-script"><span class="c"># installs claude-booths to ~/.local/bin</span>
 curl -fsSL https://raw.githubusercontent.com/sudarshan032/claude-booths/main/install.sh | bash
 
-<span class="c"># then, inside any git repo</span>
+<span class="c"># then, inside any git repository</span>
 claude-booths</pre>
           <pre class="code" id="inst-source" hidden>git clone https://github.com/sudarshan032/claude-booths
 cd claude-booths
 go build -o ~/.local/bin/claude-booths .
 
-<span class="c"># use another agent</span>
+<span class="c"># start a different agent</span>
 claude-booths -p codex</pre>
         </div>
         <ul class="needs">
-          <li><b>tmux</b><span>Runs every booth in the background.</span></li>
-          <li><b>git</b><span>Booths are git worktrees, so run it inside a repo with at least one commit.</span></li>
-          <li><b>gh</b><span>Optional. Needed to push branches with <code>p</code>.</span></li>
+          <li><b>tmux</b><span>Keeps every booth running in the background.</span></li>
+          <li><b>git</b><span>Booths are worktrees, so run it in a repository with at least one commit.</span></li>
+          <li><b>gh</b><span>Optional, for pushing branches with <code>p</code>.</span></li>
           <li><b>An agent</b><span>Claude Code by default, or any terminal agent with <code>-p</code>.</span></li>
         </ul>
       </div>
@@ -367,8 +396,8 @@ claude-booths -p codex</pre>
 
   <section class="close">
     <div class="wrap">
-      <svg class="mark" aria-hidden="true"><use href="#mark"/></svg>
-      <h2>Your next five tasks, running at once.</h2>
+      <img src="assets/logo-tile.svg" width="72" height="72" alt="">
+      <h2>Give every task its own booth.</h2>
       <div class="actions">
         <a class="btn btn-primary" href="#install">Install Claude Booths</a>
         <a class="btn btn-ghost" href="https://github.com/sudarshan032/claude-booths"><svg aria-hidden="true"><use href="#i-gh"/></svg>Star on GitHub</a>
@@ -389,144 +418,104 @@ claude-booths -p codex</pre>
 const $ = s => document.querySelector(s), esc = s => s.replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" })[c]);
 const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-/* copy buttons */
 document.addEventListener("click", async e => {
   const b = e.target.closest(".copy"); if (!b) return;
   try { await navigator.clipboard.writeText($("#" + b.dataset.copy).textContent); b.textContent = "Copied"; b.dataset.done = ""; }
   catch { b.textContent = "Press ⌘C"; getSelection().selectAllChildren($("#" + b.dataset.copy)); }
   setTimeout(() => { b.textContent = "Copy"; delete b.dataset.done; }, 1600);
 });
-
-/* install method tabs */
 document.querySelectorAll("[data-inst]").forEach(b => b.addEventListener("click", () => {
   document.querySelectorAll("[data-inst]").forEach(x => x.setAttribute("aria-selected", x === b));
   $("#inst-script").hidden = b.dataset.inst !== "script"; $("#inst-source").hidden = b.dataset.inst !== "source";
 }));
 
-/* compatibility: only "yes" after the full flow was tested on that system */
+/* "yes" only after the full flow passed on that system */
 const compat = [
-  ["Claude Code", "wip", "wip", "claude-booths"],
+  ["Claude Code", "yes", "wip", "claude-booths"],
+  ["OpenCode", "wip", "wip", "claude-booths -p opencode"],
   ["Codex CLI", "wip", "wip", "claude-booths -p codex"],
   ["Gemini CLI", "wip", "wip", "claude-booths -p gemini"],
-  ["Aider", "wip", "wip", 'claude-booths -p "aider"'],
+  ["Aider", "wip", "wip", "claude-booths -p aider"],
   ["Amp", "wip", "wip", "claude-booths -p amp"],
 ];
 const label = { yes: "Verified", wip: "Testing", no: "Not supported" };
 $("#compat tbody").innerHTML = compat.map(([a, m, l, cmd]) =>
   `<tr><th scope="row">${a}</th><td><span class="pill ${m}">${label[m]}</span></td><td><span class="pill ${l}">${label[l]}</span></td><td class="note"><code>${esc(cmd)}</code></td></tr>`).join("");
 
-/* ---------- interactive app replica ---------- */
-const themes = [
-  ["claude-booths", "#8B7CFF", "#F5A524"], ["dracula", "#BD93F9", "#F1FA8C"], ["nord", "#88C0D0", "#EBCB8B"],
-  ["gruvbox", "#FE8019", "#FABD2F"], ["ocean-green", "#2BB3A3", "#F7D774"], ["vscode", "#3794FF", "#DCDCAA"],
-];
+/* ---------- interactive replica ---------- */
+const themes = [["#8B7CFF", "#F5A524"], ["#BD93F9", "#F1FA8C"], ["#88C0D0", "#EBCB8B"], ["#FE8019", "#FABD2F"], ["#2BB3A3", "#F7D774"], ["#3794FF", "#DCDCAA"]];
 const ccHead = name => `<div class="cc-head"><span class="cc-mark">✻</span><div><b>Claude Code</b> <span class="dim">v2.1 · Opus 5.5</span>\n<span class="dim">~/.claude-booths/worktrees/booths/${name}</span></div></div>`;
-const rule = `<div class="rule">${"─".repeat(160)}</div>`;
-const promptLine = (txt = "") => `${rule}<span class="pri">❯</span> ${txt}<span class="cursor"></span>\n${rule}<span class="dim">  ⏵⏵ bypass permissions on</span>`;
+const inputBox = (txt = "") => `<span class="rule"></span><span class="pri">❯</span> ${txt}<span class="cursor"></span><span class="rule"></span><span class="foot"><span>  ? for shortcuts</span><span>◐ medium · /effort</span></span>`;
 
-// Scripted from a real Claude Code run inside a booth (trimmed).
+// From real Claude Code runs inside booths (trimmed).
 const scripts = {
-  "fix-redirect": {
-    prompt: "Fix the open redirect in src/auth.ts: only allow same-site paths.",
-    tools: "Read src/auth.ts, ran 1 shell command",
-    reply: ["Fixed src/auth.ts. redirectAfterLogin now parses next the way a browser would, using",
-      "new URL(next, base), and only keeps the path, query string and fragment when it stays",
-      "on the same origin.", "", "I ran it against a few inputs:",
-      "  - Kept: /cart?x=1#a comes back unchanged.",
-      "  - Sent to /: //evil.com, /\\evil.com, https://evil.com and javascript:alert(1)."],
+  "fix-redirect": { prompt: "Fix the open redirect in src/auth.ts: only allow same-site paths.", tools: "Read src/auth.ts, ran 1 shell command",
+    reply: ["Fixed src/auth.ts. redirectAfterLogin now parses next the way a browser would, using", "new URL(next, base), and only keeps the path, query string and fragment when it stays", "on the same origin.", "", "I ran it against a few inputs:", "  - Kept: /cart?x=1#a comes back unchanged.", "  - Sent to /: //evil.com, /\\evil.com, https://evil.com and javascript:alert(1)."],
     done: "Sautéed for 20s",
-    diff: { file: "src/auth.ts", add: 9, del: 1, lines: [
-      [" ", "export function redirectAfterLogin(next: string | null): string {"],
-      ["-", "  return next || '/';"],
-      ["+", "  // Parse like a browser does and reject anything off-origin."],
-      ["+", "  const base = 'http://localhost';"],
-      ["+", "  try {"], ["+", "    const url = new URL(next || '/', base);"],
-      ["+", "    if (url.origin !== base) return '/';"], ["+", "    return url.pathname + url.search + url.hash;"],
-      ["+", "  } catch {"], ["+", "    return '/';"], ["+", "  }"], [" ", "}"]] },
-  },
-  "dark-mode": {
-    prompt: "Add a dark mode toggle to the header and remember the choice.",
-    tools: "Read 3 files, edited 2 files",
-    reply: ["Added a ThemeToggle button to the header. It flips data-theme on <html> and saves",
-      "the choice in localStorage, so it survives reloads. Colors live in theme.css as CSS",
-      "variables; the dark set only overrides them under [data-theme=dark]."],
+    diff: { file: "src/auth.ts", add: 9, del: 1, lines: [[" ", "export function redirectAfterLogin(next: string | null): string {"], ["-", "  return next || '/';"], ["+", "  // Parse like a browser does and reject anything off-origin."], ["+", "  const base = 'http://localhost';"], ["+", "  try {"], ["+", "    const url = new URL(next || '/', base);"], ["+", "    if (url.origin !== base) return '/';"], ["+", "    return url.pathname + url.search + url.hash;"], ["+", "  } catch {"], ["+", "    return '/';"], ["+", "  }"], [" ", "}"]] } },
+  "dark-mode": { prompt: "Add a dark mode toggle to the Header that remembers the choice.", tools: "Read 3 files, edited 2 files",
+    reply: ["Added a ThemeToggle button to the Header. It flips data-theme on <html> and saves the", "choice in localStorage, so it survives a reload. The colors live in theme.css as CSS", "variables, and the dark set only overrides them under [data-theme=dark]."],
     done: "Cooked for 34s",
-    diff: { file: "src/ui/ThemeToggle.tsx", add: 14, del: 0, lines: [
-      ["+", "export function ThemeToggle() {"], ["+", "  const [dark, setDark] = useState(() => localStorage.theme === 'dark');"],
-      ["+", "  useEffect(() => {"], ["+", "    document.documentElement.dataset.theme = dark ? 'dark' : 'light';"],
-      ["+", "    localStorage.theme = dark ? 'dark' : 'light';"], ["+", "  }, [dark]);"],
-      ["+", "  return <button onClick={() => setDark(d => !d)}>{dark ? 'Light' : 'Dark'}</button>;"], ["+", "}"]] },
-  },
-  "checkout-tests": {
-    prompt: "Write tests for the checkout total with coupons.",
-    tools: "Read 2 files, wrote 1 file, ran npm test",
-    reply: ["Wrote tests/checkout.spec.ts with 6 cases: no coupon, SAVE10, an expired coupon,",
-      "a coupon on an empty cart, rounding to cents and stacking two coupons (rejected).", "",
-      "npm test: 6 passed (0.8s)."],
+    diff: { file: "src/ui/ThemeToggle.tsx", add: 14, del: 0, lines: [["+", "export function ThemeToggle() {"], ["+", "  const [dark, setDark] = useState(() => localStorage.theme === 'dark');"], ["+", "  useEffect(() => {"], ["+", "    document.documentElement.dataset.theme = dark ? 'dark' : 'light';"], ["+", "    localStorage.theme = dark ? 'dark' : 'light';"], ["+", "  }, [dark]);"], ["+", "  return <button onClick={() => setDark(d => !d)}>{dark ? 'Light' : 'Dark'}</button>;"], ["+", "}"]] } },
+  "checkout-tests": { prompt: "Write node:test tests for total() in src/checkout.js and run them.", tools: "Read 2 files, wrote 1 file, ran npm test",
+    reply: ["Wrote tests/checkout.test.js with six cases: no coupon, SAVE10, an expired coupon, an", "unknown code, an empty cart and rounding to cents.", "", "npm test: 6 passed (0.8s)."],
     done: "Brewed for 41s",
-    diff: { file: "tests/checkout.spec.ts", add: 22, del: 0, lines: [
-      ["+", "describe('checkout total', () => {"], ["+", "  it('applies SAVE10', () => {"],
-      ["+", "    expect(total(cart, 'SAVE10')).toBe(90);"], ["+", "  });"],
-      ["+", "  it('rejects an expired coupon', () => {"], ["+", "    expect(() => total(cart, 'OLD')).toThrow('expired');"],
-      ["+", "  });"], ["+", "});"]] },
-  },
+    diff: { file: "tests/checkout.test.js", add: 22, del: 0, lines: [["+", "import { test } from 'node:test';"], ["+", "import assert from 'node:assert/strict';"], ["+", "test('applies SAVE10', () => {"], ["+", "  assert.equal(total(cart, 'SAVE10'), 90);"], ["+", "});"], ["+", "test('rejects an expired coupon', () => {"], ["+", "  assert.throws(() => total(cart, 'OLD'), /expired/);"], ["+", "});"]] } },
 };
-const generic = p => ({ prompt: p, tools: "Read 4 files, edited 2 files",
-  reply: ["Done. I kept the change small and left a note in the PR description about what to", "check by hand."],
-  done: "Worked for 27s", diff: { file: "src/app.ts", add: 6, del: 2, lines: [["-", "const enabled = false;"], ["+", "const enabled = flags.get('new-flow');"], ["+", "if (!enabled) return legacyFlow();"]] } });
+const followUp = (name, p) => ({ prompt: p, tools: "Read 2 files, edited 1 file",
+  reply: ["Done. I kept the change small and in line with the rest of " + name + "; the diff", "tab shows the one file I touched."],
+  done: "Worked for 18s", diff: { file: "src/app.js", add: 4, del: 1, lines: [["-", "const enabled = false;"], ["+", "const enabled = flags.get('new-flow');"], ["+", "if (!enabled) return legacyFlow();"]] } });
 
 const app = $("#app"), view = $("#view"), list = $("#booths");
 const booths = [
   { name: "fix-redirect", state: "ready", shown: Infinity },
-  { name: "dark-mode", state: "busy", shown: 0 },
-  { name: "checkout-tests", state: "ready", shown: Infinity },
+  { name: "dark-mode", state: "busy", shown: 0, wait: 0 },
+  { name: "checkout-tests", state: "busy", shown: 0, wait: -30 },
 ];
-let sel = 0, tab = "preview", inside = false, typed = "", themeIx = 0, spin = 0;
+let sel = 0, tab = "preview", inside = false, typed = "", themeIx = 0, spin = 0, lastList = "", lastView = "";
 const frames = "⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏";
-const script = b => scripts[b.name] || b.script;
+const S = b => b.script || scripts[b.name];
 
-function renderList() {
-  $("#count").textContent = booths.length + " open";
-  list.innerHTML = booths.map((b, i) => {
-    const s = script(b), d = b.state === "ready" ? `<span class="df">+${s.diff.add},<b>-${s.diff.del}</b></span>` : "";
+function listHTML() {
+  return booths.map((b, i) => {
+    const s = S(b), d = b.state === "ready" ? `<span class="df">+${s.diff.add},<b>-${s.diff.del}</b></span>` : "<span></span>";
     return `<button class="booth" role="option" aria-selected="${i === sel}" data-i="${i}"><span class="n">${i + 1}.</span><span class="t">${b.name}</span><span class="st ${b.state === "busy" ? "busy" : ""}">${b.state === "busy" ? frames[spin % 10] : "●"}</span><span class="br">⎇ booths/${b.name}</span>${d}</button>`;
   }).join("");
 }
 function preview(b) {
-  const s = script(b);
+  const s = S(b);
   let out = ccHead(b.name) + `<span class="pri">❯</span> ${esc(s.prompt)}\n`;
-  if (b.state === "busy" && b.shown === 0) return out + `\n<span class="sec">${frames[spin % 10]}</span> <span class="sec">Thinking…</span> <span class="dim">(esc to interrupt)</span>\n\n` + promptLine();
-  out += `  <span class="dim">${s.tools}</span>\n\n`;
-  const lines = s.reply.slice(0, b.shown);
-  out += lines.map((l, i) => (i === 0 ? `<span class="ok">⏺</span> ` : "  ") + esc(l)).join("\n") + "\n";
-  if (b.state === "busy") out += `\n<span class="sec">${frames[spin % 10]} Writing…</span>\n`;
-  else out += `\n<span class="dim">✻ ${s.done}</span>\n`;
-  return out + "\n" + promptLine(inside ? esc(typed) : "");
+  if (b.state === "busy" && b.shown === 0) return out + `\n<span class="sec">${frames[spin % 10]} Thinking…</span> <span class="dim">(esc to interrupt)</span>\n` + inputBox();
+  out += `  <span class="dim">${s.tools}</span>\n\n` + s.reply.slice(0, b.shown).map((l, i) => (i === 0 ? `<span class="ok">⏺</span> ` : "  ") + esc(l)).join("\n") + "\n";
+  out += b.state === "busy" ? `\n<span class="sec">${frames[spin % 10]} Writing…</span>\n` : `\n<span class="dim">✻ ${s.done}</span>\n`;
+  return out + inputBox(inside ? esc(typed) : "");
 }
 function diff(b) {
-  const s = script(b);
-  if (b.state === "busy") return `<span class="dim">No changes yet.</span>`;
+  const s = S(b);
+  if (b.state === "busy") return `<span class="dim">No changes yet. Claude Code is still working in this booth.</span>`;
   return `<span class="ok">${s.diff.add} additions(+)</span> <span class="bad">${s.diff.del} deletions(-)</span>\n<b>diff --git a/${s.diff.file} b/${s.diff.file}</b>\n<span class="pri">@@ -1,3 +1,${s.diff.lines.length} @@</span>\n` +
     s.diff.lines.map(([k, l]) => k === "+" ? `<span class="ok">+${esc(l)}</span>` : k === "-" ? `<span class="bad">-${esc(l)}</span>` : " " + esc(l)).join("\n");
 }
 function terminal(b) {
-  return `<span class="ok">~/.claude-booths/worktrees/${b.name}</span> <span class="pri">(booths/${b.name})</span> $ git status --short\n${b.state === "busy" ? "" : ` M ${script(b).diff.file}\n`}<span class="ok">~/.claude-booths/worktrees/${b.name}</span> <span class="pri">(booths/${b.name})</span> $ <span class="cursor"></span>`;
+  const p = `<span class="ok">~/.claude-booths/worktrees/booths/${b.name}</span> <span class="pri">(booths/${b.name})</span> $ `;
+  return `${p}git status --short\n${b.state === "busy" ? "" : ` M ${S(b).diff.file}\n`}${p}<span class="cursor"></span>`;
 }
 function render() {
-  renderList();
-  const b = booths[sel];
+  const lh = listHTML();
+  if (lh !== lastList) { list.innerHTML = lh; lastList = lh; }
+  $("#count").textContent = booths.length + " open";
   document.querySelectorAll(".tab").forEach(t => t.setAttribute("aria-selected", t.dataset.tab === tab));
-  view.innerHTML = inside || tab === "preview" ? preview(b) : tab === "diff" ? diff(b) : terminal(b);
-  view.scrollTop = view.scrollHeight;
+  const b = booths[sel], vh = inside || tab === "preview" ? preview(b) : tab === "diff" ? diff(b) : terminal(b);
+  if (vh !== lastView) { view.innerHTML = vh; lastView = vh; view.scrollTop = view.scrollHeight; }
   app.classList.toggle("inside", inside);
-  $("#statusbar").textContent = ` claude-booths · ${b.name} · ⎇ booths/${b.name} · ~/code/acme-shop          ctrl+q to step out`;
+  $("#statusbar").textContent = ` claude-booths · ${b.name} · ⎇ booths/${b.name} · ~/code/acme-shop        ctrl+q to step out`;
 }
 function tick() {
   spin++;
   for (const b of booths) if (b.state === "busy") {
-    b.wait = (b.wait || 0) + 1;
+    b.wait++;
     if (b.wait > 14 && b.wait % 4 === 0) b.shown++;
-    if (b.shown >= script(b).reply.length) { b.state = "ready"; b.shown = Infinity; }
+    if (b.shown >= S(b).reply.length) { b.state = "ready"; b.shown = Infinity; }
   }
   render();
 }
@@ -538,41 +527,42 @@ document.addEventListener("visibilitychange", () => document.hidden ? stop() : s
 if (reduce) booths.forEach(b => { b.state = "ready"; b.shown = Infinity; });
 
 function openDialog() { $("#dialog").hidden = false; $("#f-name").value = ""; $("#f-prompt").value = ""; $("#f-name").focus(); }
-function closeDialog() { $("#dialog").hidden = true; app.focus(); }
+function closeDialog() { $("#dialog").hidden = true; app.focus({ preventScroll: true }); }
 $("#newform").addEventListener("submit", e => {
   e.preventDefault();
   const name = $("#f-name").value.trim().toLowerCase().replace(/[^a-z0-9-]+/g, "-").slice(0, 24) || "new-booth";
   const p = $("#f-prompt").value.trim() || "Tidy up the README";
-  booths.push({ name, state: "busy", shown: 0, script: generic(p) });
+  booths.push({ name, state: "busy", shown: 0, wait: 0, script: followUp(name, p) });
   sel = booths.length - 1; tab = "preview"; closeDialog(); render();
 });
 $("#dialog").addEventListener("keydown", e => { if (e.key === "Escape") { e.stopPropagation(); closeDialog(); } });
 
-list.addEventListener("click", e => { const b = e.target.closest(".booth"); if (b) { sel = +b.dataset.i; render(); } });
+// pointerdown, not click: the list re-renders while booths stream, which can swallow a click.
+list.addEventListener("pointerdown", e => { const b = e.target.closest(".booth"); if (b) { sel = +b.dataset.i; inside = false; render(); app.focus({ preventScroll: true }); } });
 list.addEventListener("dblclick", e => { if (e.target.closest(".booth")) { inside = true; typed = ""; render(); } });
-document.querySelectorAll(".tab").forEach(t => t.addEventListener("click", () => { tab = t.dataset.tab; render(); }));
+document.querySelectorAll(".tab").forEach(t => t.addEventListener("pointerdown", () => { tab = t.dataset.tab; render(); }));
 app.addEventListener("keydown", e => {
   if (!$("#dialog").hidden) return;
   if (inside) {
     if ((e.ctrlKey && e.key.toLowerCase() === "q") || e.key === "Escape") { inside = false; typed = ""; }
     else if (e.key === "Backspace") typed = typed.slice(0, -1);
-    else if (e.key === "Enter" && typed) { const b = booths[sel]; b.script = generic(typed); delete scripts[b.name]; b.state = "busy"; b.shown = 0; b.wait = 0; typed = ""; }
+    else if (e.key === "Enter" && typed) { const b = booths[sel]; b.script = followUp(b.name, typed); b.state = "busy"; b.shown = 0; b.wait = 0; typed = ""; }
     else if (e.key.length === 1 && !e.metaKey && !e.ctrlKey) typed = (typed + e.key).slice(0, 80);
     else return;
     e.preventDefault(); render(); return;
   }
-  const k = e.key;
+  const k = e.key, tabs = ["preview", "diff", "terminal"];
   if (k === "j" || k === "ArrowDown") sel = Math.min(booths.length - 1, sel + 1);
   else if (k === "k" || k === "ArrowUp") sel = Math.max(0, sel - 1);
-  else if (k === "Tab") tab = ["preview", "diff", "terminal"][(["preview", "diff", "terminal"].indexOf(tab) + (e.shiftKey ? 2 : 1)) % 3];
+  else if (k === "Tab") tab = tabs[(tabs.indexOf(tab) + (e.shiftKey ? 2 : 1)) % 3];
   else if (k === "Enter" || k === "o") { inside = true; typed = ""; }
   else if (k === "N" || k === "n") { e.preventDefault(); openDialog(); return; }
   else if (k === "D" && booths.length > 1) { booths.splice(sel, 1); sel = Math.min(sel, booths.length - 1); }
-  else if (k === "t") { themeIx = (themeIx + 1) % themes.length; const [, p, s] = themes[themeIx]; app.style.setProperty("--pri", p); app.style.setProperty("--sec", s); }
+  else if (k === "t") { themeIx = (themeIx + 1) % themes.length; app.style.setProperty("--pri", themes[themeIx][0]); app.style.setProperty("--sec", themes[themeIx][1]); lastList = lastView = ""; }
   else return;
   e.preventDefault(); render();
 });
-app.addEventListener("click", e => { if (!e.target.closest("input,button")) app.focus({ preventScroll: true }); });
+app.addEventListener("pointerdown", e => { if (!e.target.closest("input,button")) app.focus({ preventScroll: true }); });
 render();
 </script>
 </body>

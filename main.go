@@ -28,7 +28,7 @@ var (
 	binName     string
 	rootCmd     = &cobra.Command{
 		Use:   "claude-booths",
-		Short: "Claude Booths - run many AI coding chats side by side, each in its own git worktree.",
+		Short: "Claude Booths - run Claude Code in parallel, one booth (branch + worktree + tmux session) per task.",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := context.Background()
 			log.Initialize(daemonFlag)

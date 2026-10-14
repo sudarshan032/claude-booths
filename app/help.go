@@ -38,7 +38,7 @@ func (h helpTypeGeneral) toContent() string {
 	content := lipgloss.JoinVertical(lipgloss.Left,
 		titleStyle.Render("Claude Booths"),
 		"",
-		"Run many AI coding chats side by side, each in its own booth: a private git worktree.",
+		"Run Claude Code in parallel: every session gets its own booth, with its own branch, worktree and tmux session.",
 		"",
 		headerStyle.Render("Managing:"),
 		keyStyle.Render("n")+descStyle.Render("         - Create a new session"),

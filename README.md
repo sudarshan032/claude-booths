@@ -5,8 +5,8 @@
 <h1 align="center">Claude Booths</h1>
 
 <p align="center">
-  <b>Many chats. One terminal. Zero collisions.</b><br>
-  Run AI coding chats side by side. Every booth gets its own git worktree and tmux session.
+  <b>Run Claude Code in parallel, one booth per task.</b><br>
+  A terminal workspace for several Claude Code sessions at once. Every booth has its own branch, worktree and tmux session.
 </p>
 
 <p align="center">
@@ -31,16 +31,17 @@
 
 ## Why booths
 
-You have five things to do. One chat at a time is slow; five chats in one folder overwrite each
-other. Claude Booths gives every chat its own **booth**: a private git worktree on its own branch,
-running in its own tmux session. You hop between them, watch live output, step in when one needs
-you, and ship the branches that are ready.
+A single Claude Code session works on one thing at a time, and two sessions in the same folder
+overwrite each other's edits. Claude Booths gives every session its own **booth**: a git worktree
+on its own branch, running in its own tmux session. Start a bug fix in one booth, a refactor in
+another and a test suite in a third, watch them all live, step in when one needs you, and ship
+the branches that are ready.
 
-- **Isolated**: each booth works on its own branch in its own worktree. No half-edited files from another task.
-- **Live**: previews are streamed from tmux the moment output changes. Idle booths cost nothing (no polling).
-- **Reviewable**: a diff tab per booth, then push the branch for a PR or check it out locally.
-- **Your agent**: [Claude Code](https://github.com/anthropics/claude-code) by default; any terminal agent with `-p`. See [Agents](#agents) for what's verified.
-- **Background mode**: `-y` auto-accepts prompts so booths can finish while you are elsewhere.
+- **Isolated**: each booth is a worktree on its own branch. Nothing reaches your main checkout until you push or check it out.
+- **Persistent**: booths run in tmux, so they keep going when you quit the app or close the terminal.
+- **Live**: previews stream from tmux the moment the screen changes. Idle booths use no CPU (no polling).
+- **Reviewable**: a diff tab per booth, then `p` to push the branch for a PR or `c` to check it out.
+- **Your agent**: Claude Code by default; any terminal agent with `-p`. See [Agents](#agents) for what's verified.
 - **Eight themes**: press `t`.
 
 ## Install
@@ -102,11 +103,12 @@ prompt, live preview, diff, step in and out, restore after restart, delete).
 
 | Agent | macOS | Linux | Start with |
 |---|---|---|---|
-| [Claude Code](https://github.com/anthropics/claude-code) | 🧪 testing | 🧪 testing | `claude-booths` |
+| [Claude Code](https://github.com/anthropics/claude-code) | ✅ verified | 🧪 testing | `claude-booths` |
 | [Codex CLI](https://github.com/openai/codex) | 🧪 testing | 🧪 testing | `claude-booths -p codex` |
 | [Gemini CLI](https://github.com/google-gemini/gemini-cli) | 🧪 testing | 🧪 testing | `claude-booths -p gemini` |
 | [Aider](https://github.com/Aider-AI/aider) | 🧪 testing | 🧪 testing | `claude-booths -p aider` |
 | Amp | 🧪 testing | 🧪 testing | `claude-booths -p amp` |
+| [OpenCode](https://opencode.ai) | 🧪 testing | 🧪 testing | `claude-booths -p opencode` |
 
 Native Windows isn't supported (booths need tmux).
 
