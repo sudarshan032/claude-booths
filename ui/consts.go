@@ -7,19 +7,6 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-// The booth logo: three arches on a floor, the middle one lit. Each row is the left booth,
-// the lit middle booth and the right booth, so the parts can take different colors.
-var logoRows = [][3]string{
-	{"       ", " ▄▄▄▄▄ ", "       "},
-	{" ╭───╮ ", "▟█████▙", " ╭───╮ "},
-	{" │ ▬ │ ", "██   ██", " │ ▬ │ "},
-	{" │   │ ", "███████", " │   │ "},
-}
-
-const logoFloor = "━━━━━━━━━━━━━━━━━━━━━"
-
-var logoWidth = lipgloss.Width(logoFloor)
-
 // welcomeKeys is the keys card on the empty screen.
 var welcomeKeys = [][2]string{
 	{"n", "new booth"},
@@ -33,17 +20,13 @@ var welcomeKeys = [][2]string{
 const welcomeTagline = "Claude Code in parallel, one booth per task."
 
 var (
-	logoBoothStyle, logoLampStyle, wordClaudeStyle, wordBoothsStyle lipgloss.Style
-	taglineStyle, welcomeKeyStyle, welcomeDescStyle, keysCardStyle  lipgloss.Style
-	welcomeMsgStyle                                                 lipgloss.Style
+	bannerLabelStyle, taglineStyle, welcomeKeyStyle, welcomeDescStyle lipgloss.Style
+	keysCardStyle, welcomeMsgStyle                                    lipgloss.Style
 )
 
 func init() {
 	theme.OnChange(func(p theme.Palette) {
-		logoBoothStyle = lipgloss.NewStyle().Foreground(p.Accent)
-		logoLampStyle = lipgloss.NewStyle().Foreground(p.Warning)
-		wordClaudeStyle = lipgloss.NewStyle().Foreground(p.Text).Bold(true)
-		wordBoothsStyle = lipgloss.NewStyle().Foreground(p.Accent).Bold(true)
+		bannerLabelStyle = lipgloss.NewStyle().Foreground(p.Accent).Bold(true)
 		taglineStyle = lipgloss.NewStyle().Foreground(p.Muted)
 		welcomeKeyStyle = lipgloss.NewStyle().Foreground(p.Warning).Bold(true)
 		welcomeDescStyle = lipgloss.NewStyle().Foreground(p.Muted)
@@ -52,13 +35,12 @@ func init() {
 	})
 }
 
-func renderLogo() string {
-	rows := make([]string, 0, len(logoRows)+1)
-	for _, r := range logoRows {
-		rows = append(rows, logoBoothStyle.Render(r[0])+logoLampStyle.Render(r[1])+logoBoothStyle.Render(r[2]))
-	}
-	rows = append(rows, logoBoothStyle.Render(logoFloor))
-	return strings.Join(rows, "\n")
+// renderBanner is the pixel wordmark with a small "claude" label above its left edge,
+// large or compact.
+func renderBanner(large bool) string {
+	banner := renderPixelBanner(large)
+	label := bannerLabelStyle.Render("claude")
+	return lipgloss.JoinVertical(lipgloss.Left, label, banner)
 }
 
 // renderKeysCard lays the keys out in two columns, or one when cols is 1; each column
@@ -84,28 +66,40 @@ func renderKeysCard(cols int) string {
 	return keysCardStyle.Render(strings.Join(rows, "\n"))
 }
 
-// renderWelcome draws the screen shown when a pane has nothing live to show: the logo,
-// the wordmark, the tagline, optionally the keys card, then message. It fits the result into
-// width x height by dropping the logo first, then the keys card, then the tagline.
+// renderWelcome draws the screen shown when a pane has nothing live to show: the pixel
+// wordmark (or the one-line prompt logo when it doesn't fit), the tagline, optionally the
+// keys card, then message. It fits the result into width x height by shrinking the banner,
+// then dropping it for the prompt logo, then dropping the keys card, then the tagline.
 func renderWelcome(width, height int, message string, withKeys bool) string {
 	if width <= 0 {
 		return ""
 	}
-	wordmark := wordClaudeStyle.Render("claude") + " " + wordBoothsStyle.Render("booths")
 	msg := ""
 	if message != "" {
 		msg = welcomeMsgStyle.Width(min(width, 64)).Align(lipgloss.Center).Render(message)
 	}
 
-	if width < len("claude booths") {
-		wordmark = wordBoothsStyle.Render("booths")
+	// Logo candidates, biggest first; the last one always fits.
+	var logos []string
+	if width >= pixelLargeWidth {
+		logos = append(logos, renderBanner(true))
 	}
-	logo, tagline, card := "", "", ""
+	if width >= pixelCompactWidth {
+		logos = append(logos, renderBanner(false))
+	}
+	if width >= lipgloss.Width(promptLogoText) {
+		logos = append(logos, PromptLogo(true))
+	} else {
+		logos = append(logos, PromptLogo(false))
+	}
+	if width < lipgloss.Width(PromptLogo(false)) {
+		logos = append(logos, promptWordStyle.Render("booths"))
+	}
+	logo := logos[0]
+
+	tagline, card := "", ""
 	if width >= lipgloss.Width(welcomeTagline) {
 		tagline = taglineStyle.Render(welcomeTagline)
-	}
-	if width >= logoWidth {
-		logo = renderLogo()
 	}
 	if withKeys {
 		for _, cols := range []int{2, 1} {
@@ -127,13 +121,10 @@ func renderWelcome(width, height int, message string, withKeys bool) string {
 			}
 			parts = append(parts, s)
 		}
-		if logo != "" {
-			add(logo)
-		}
 		if tagline != "" {
-			add(wordmark + "\n" + tagline)
+			add(logo + "\n\n" + tagline)
 		} else {
-			add(wordmark)
+			add(logo)
 		}
 		add(card)
 		add(msg)
@@ -141,8 +132,13 @@ func renderWelcome(width, height int, message string, withKeys bool) string {
 	}
 
 	out := build()
-	for _, drop := range []*string{&logo, &card, &tagline} {
-		if height <= 0 || lipgloss.Height(out) <= height {
+	fits := func() bool { return height <= 0 || lipgloss.Height(out) <= height }
+	for i := 1; i < len(logos) && !fits(); i++ {
+		logo = logos[i]
+		out = build()
+	}
+	for _, drop := range []*string{&card, &tagline} {
+		if fits() {
 			break
 		}
 		*drop = ""

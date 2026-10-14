@@ -6,6 +6,9 @@ versions: [SemVer](https://semver.org/). Forked from claude-squad v1.0.20.
 ## Unreleased
 
 ### Added
+- Pixel "booths" banner on the welcome screen (the two o's are booths, one lit), with a
+  half-block version for smaller panes, and a one-line `❯ b[ ][▮]ths` logo in the booth list,
+  help and narrow panes.
 - `CLAUDE_BOOTHS_HOME` env var to keep config, state and worktrees somewhere other than `~/.claude-booths`.
 - Brand: logo, design system (`BRAND.md`), website (`docs/`), demo GIF and promo loop,
   all reproducible from `docs/demo/`.
