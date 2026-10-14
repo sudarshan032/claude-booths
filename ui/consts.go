@@ -30,7 +30,7 @@ var welcomeKeys = [][2]string{
 	{"?", "help"},
 }
 
-const welcomeTagline = "Many chats. One terminal."
+const welcomeTagline = "Claude Code in parallel, one booth per task."
 
 var (
 	logoBoothStyle, logoLampStyle, wordClaudeStyle, wordBoothsStyle lipgloss.Style
