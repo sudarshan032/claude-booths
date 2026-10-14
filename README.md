@@ -1,137 +1,137 @@
-# Claude Style [![CI](https://github.com/sudarshan032/claude-style/actions/workflows/build.yml/badge.svg)](https://github.com/sudarshan032/claude-style/actions/workflows/build.yml) [![GitHub Release](https://img.shields.io/github/v/release/sudarshan032/claude-style)](https://github.com/sudarshan032/claude-style/releases/latest)
+<p align="center">
+  <img src="docs/assets/logo.svg" width="112" alt="Claude Booths logo">
+</p>
 
-Claude Style is a terminal app that manages multiple [Claude Code](https://github.com/anthropics/claude-code), [Codex](https://github.com/openai/codex), [Gemini](https://github.com/google-gemini/gemini-cli) (and other local agents including [Aider](https://github.com/Aider-AI/aider)) in separate workspaces, allowing you to work on multiple tasks simultaneously.
+<h1 align="center">Claude Booths</h1>
 
+<p align="center">
+  <b>Many chats. One terminal. Zero collisions.</b><br>
+  Run AI coding chats side by side. Every booth gets its own git worktree and tmux session.
+</p>
 
-![Claude Style Screenshot](assets/screenshot.png)
+<p align="center">
+  <a href="https://github.com/sudarshan032/claude-booths/actions/workflows/ci.yml"><img src="https://github.com/sudarshan032/claude-booths/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://github.com/sudarshan032/claude-booths/releases/latest"><img src="https://img.shields.io/github/v/release/sudarshan032/claude-booths?color=8B7CFF" alt="Release"></a>
+  <a href="LICENSE.md"><img src="https://img.shields.io/badge/license-AGPL--3.0-4DF0C0" alt="AGPL-3.0"></a>
+  <img src="https://img.shields.io/badge/macOS%20%7C%20Linux-FFC861" alt="macOS | Linux">
+</p>
 
-### Highlights
-- Complete tasks in the background (including yolo / auto-accept mode!)
-- Manage instances and tasks in one terminal window
-- Review changes before applying them, checkout changes before pushing them
-- Each task gets its own isolated git workspace, so no conflicts
+<p align="center">
+  <a href="https://sudarshan032.github.io/claude-booths/">Website</a> ·
+  <a href="#install">Install</a> ·
+  <a href="#usage">Usage</a> ·
+  <a href="#keys">Keys</a> ·
+  <a href="#configuration">Configuration</a> ·
+  <a href="CONTRIBUTING.md">Contributing</a>
+</p>
 
-### What's different from claude-squad
+<p align="center">
+  <img src="docs/assets/demo.gif" alt="Opening three booths, hopping between live previews, reading a diff, stepping into a booth and cycling themes" width="100%">
+</p>
 
-Claude Style is a fork of [smtg-ai/claude-squad](https://github.com/smtg-ai/claude-squad) with:
+## Why booths
 
-- **Streamed previews**: pane changes are pushed by tmux instead of polled with `capture-pane`
-  ~12 times a second per session, so idle sessions spawn no processes at all.
-- **No lost input while attached**: the TUI stops reading stdin during attach, so the first
-  keystroke or the start of a paste is never swallowed.
-- **Fetch never hangs**: background `git fetch` can't prompt for credentials on your TTY.
-- **Branch picker knows what's in use**: branches checked out by another session (or your main
-  folder) are shown greyed out and can't be picked, instead of the new session silently vanishing.
-- **Prompt delivery waits for the agent to boot** (slow SessionStart hooks no longer eat the Enter).
-- **Preview and Terminal tabs show the full pane** (no lost top/bottom row).
-- Migrates `~/.claude-squad` config/state and running sessions on first run.
+You have five things to do. One chat at a time is slow; five chats in one folder overwrite each
+other. Claude Booths gives every chat its own **booth**: a private git worktree on its own branch,
+running in its own tmux session. You hop between them, watch live output, step in when one needs
+you, and ship the branches that are ready.
 
-### Installation
+- **Isolated**: each booth works on its own branch in its own worktree. No half-edited files from another task.
+- **Live**: previews are streamed from tmux the moment output changes. Idle booths cost nothing (no polling).
+- **Reviewable**: a diff tab per booth, then push the branch for a PR or check it out locally.
+- **Any agent**: [Claude Code](https://github.com/anthropics/claude-code) by default; [Codex](https://github.com/openai/codex), [Gemini CLI](https://github.com/google-gemini/gemini-cli), [Aider](https://github.com/Aider-AI/aider), Amp or any CLI with `-p`.
+- **Background mode**: `-y` auto-accepts prompts so booths can finish while you are elsewhere.
+- **Eight themes**: press `t`.
+
+## Install
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/sudarshan032/claude-style/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/sudarshan032/claude-booths/main/install.sh | bash
 ```
 
-This puts the `claude-style` binary in `~/.local/bin`. To use a different name (e.g. `cs`):
+This puts `claude-booths` in `~/.local/bin`. Prefer a shorter name?
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/sudarshan032/claude-style/main/install.sh | bash -s -- --name cs
+curl -fsSL https://raw.githubusercontent.com/sudarshan032/claude-booths/main/install.sh | bash -s -- --name booths
 ```
 
-Or build from source (Go 1.23+): `go build -o ~/.local/bin/claude-style .`
+From source (Go version in `go.mod`): `go build -o ~/.local/bin/claude-booths .`
 
-### Prerequisites
+**Needs** [tmux](https://github.com/tmux/tmux/wiki/Installing) and git, plus [gh](https://cli.github.com/) to push branches.
 
-- [tmux](https://github.com/tmux/tmux/wiki/Installing)
-- [gh](https://cli.github.com/)
+## Usage
 
-### Usage
+Run it inside any git repository:
 
+```bash
+cd your-project
+claude-booths
 ```
+
+Press `N`, name the booth, type what you want done, and press Enter. Open as many as you like.
+
+```text
 Usage:
-  claude-style [flags]
-  claude-style [command]
+  claude-booths [flags]
+  claude-booths [command]
 
-Available Commands:
-  completion  Generate the autocompletion script for the specified shell
+Commands:
   debug       Print debug information like config paths
-  help        Help about any command
-  reset       Reset all stored instances
-  version     Print the version number of claude-style
+  reset       Reset all stored booths
+  themes      List color themes, or set one (also: press t in the app)
+  version     Print the version number
 
 Flags:
-  -y, --autoyes          [experimental] If enabled, all instances will automatically accept prompts for claude code & aider
-  -h, --help             help for claude-style
-  -p, --program string   Program to run in new instances (e.g. 'aider --model ollama_chat/gemma3:1b')
+  -p, --program string   Program to run in new booths (e.g. 'aider --model ollama_chat/gemma3:1b')
+  -y, --autoyes          [experimental] All booths automatically accept prompts
 ```
 
-Run the application with:
+Other agents:
 
 ```bash
-claude-style
-```
-NOTE: The default program is `claude` and we recommend using the latest version.
-
-<br />
-
-<b>Using Claude Style with other AI assistants:</b>
-- For [Codex](https://github.com/openai/codex): Set your API key with `export OPENAI_API_KEY=<your_key>`
-- Launch with specific assistants:
-   - Codex: `claude-style -p "codex"`
-   - Aider: `claude-style -p "aider ..."`
-   - Gemini: `claude-style -p "gemini"`
-- Make this the default, by modifying the config file (locate with `claude-style debug`)
-
-<br />
-
-#### Themes
-
-Press `t` in the app to cycle themes (the choice is saved), or from the shell:
-
-```bash
-claude-style themes            # list themes with color swatches, * marks the active one
-claude-style themes monokai    # set one
+claude-booths -p codex          # needs OPENAI_API_KEY
+claude-booths -p gemini
+claude-booths -p "aider --model ollama_chat/gemma3:1b"
 ```
 
-Built-in: `claude-style` (default), `monokai`, `vscode`, `ocean-green`, `dracula`, `nord`,
-`gruvbox`, `solarized`. Stored as `"theme"` in `~/.claude-style/config.json`. Themes color the
-UI and each session's tmux status bar; the background stays your terminal's.
+To make one the default, set `default_program` in the config (path: `claude-booths debug`).
 
-#### Menu
-The menu at the bottom of the screen shows available commands: 
+## Keys
 
-##### Instance/Session Management
-- `n` - Create a new session
-- `N` - Create a new session with a prompt
-- `D` - Kill (delete) the selected session
-- `↑/j`, `↓/k` - Navigate between sessions
+| Key | Action |
+|---|---|
+| `n` / `N` | New booth / new booth with a prompt |
+| `↑` `↓` (`k` `j`) | Move between booths |
+| `↵` / `o` | Step inside the selected booth (full screen) |
+| `Ctrl+Q` | Step back out |
+| `tab` | Switch Preview · Diff · Terminal |
+| `shift+↑` `shift+↓` / wheel | Scroll the preview or diff (`Esc` to return) |
+| `p` | Commit and push the booth's branch (for a PR) |
+| `c` | Checkout: commit changes and pause the booth |
+| `r` | Resume a paused booth |
+| `D` | Delete the booth (worktree and branch) |
+| `K` / `J` | Reorder booths |
+| `t` | Next theme |
+| `?` | Help |
+| `q` | Quit (booths keep running in tmux) |
 
-##### Actions
-- `↵/o` - Attach to the selected session to reprompt
-- `ctrl-q` - Detach from session
-- `s` - Commit and push branch to github
-- `c` - Checkout. Commits changes and pauses the session
-- `r` - Resume a paused session
-- `?` - Show help menu
+## Configuration
 
-##### Navigation
-- `tab` - Switch between preview tab and diff tab
-- `q` - Quit the application
-- `shift-↓/↑` - scroll in diff view
+Stored in `~/.claude-booths/config.json` (`claude-booths debug` prints the path).
 
-### Configuration
-
-Claude Style stores its configuration in `~/.claude-style/config.json`. You can find the exact path by running `claude-style debug`.
-
-#### Profiles
-
-Profiles let you define multiple named program configurations and switch between them when creating a new session. When more than one profile is defined, the session creation overlay shows a profile picker that you can navigate with `←`/`→`.
-
-To configure profiles, add a `profiles` array to your config file and set `default_program` to the name of the profile to select by default:
+| Key | Default | What |
+|---|---|---|
+| `default_program` | `claude` | Command (or profile name) new booths run |
+| `branch_prefix` | `<your-user>/` | Prefix for new booth branches, e.g. `booths/` |
+| `theme` | `claude-booths` | Color theme |
+| `auto_yes` | `false` | Same as `-y` |
+| `profiles` | none | Named programs, picked with `←` `→` when opening a booth |
 
 ```json
 {
   "default_program": "claude",
+  "branch_prefix": "booths/",
+  "theme": "claude-booths",
   "profiles": [
     { "name": "claude", "program": "claude" },
     { "name": "codex", "program": "codex" },
@@ -140,33 +140,41 @@ To configure profiles, add a `profiles` array to your config file and set `defau
 }
 ```
 
-Each profile has two fields:
+### Themes
 
-| Field     | Description                                              |
-|-----------|----------------------------------------------------------|
-| `name`    | Display name shown in the profile picker                 |
-| `program` | Shell command used to launch the agent for that profile  |
+```bash
+claude-booths themes           # list with swatches, * marks the active one
+claude-booths themes nord      # set one
+```
 
-If no profiles are defined, Claude Style uses `default_program` directly as the launch command (the default is `claude`).
+`claude-booths` (default) · `dracula` · `gruvbox` · `monokai` · `nord` · `ocean-green` · `solarized` · `vscode`.
+Themes color the UI and each booth's tmux status bar; the background stays your terminal's.
 
-### FAQs
+## How it works
 
-#### Failed to start new session
+1. **git worktrees** give every booth its own checkout and branch, cut from your current `HEAD`.
+2. **tmux** runs every agent in a background session; the app reads a streaming tmux client per booth, so previews update the moment output changes.
+3. **A Bubble Tea TUI** ties it together: list, live preview, diff and a plain terminal per booth.
 
-If you get an error like `failed to start new session: timed out waiting for tmux session`, update the
-underlying program (ex. `claude`) to the latest version.
+## FAQ
 
-### How It Works
+**`failed to start new session: timed out waiting for tmux session`**
+Update the agent CLI (for example `claude`) to its latest version.
 
-1. **tmux** to create isolated terminal sessions for each agent
-2. **git worktrees** to isolate codebases so each session works on its own branch
-3. A simple TUI interface for easy navigation and management
+**Uncommitted changes in my main folder aren't in the booth.**
+Booths start from your last commit. Commit first if a booth needs those changes.
 
-### License
+**Where are the worktrees?** `~/.claude-booths/worktrees/`. Deleting a booth (`D`) removes its worktree and branch.
 
-[AGPL-3.0](LICENSE.md). Claude Style is a modified version of
+## Contributing
+
+Bug reports and PRs are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) for the branch and commit
+conventions, tests and release steps. Brand assets and the design system live in [BRAND.md](BRAND.md).
+
+## License
+
+[AGPL-3.0](LICENSE.md). Claude Booths is a modified version of
 [claude-squad](https://github.com/smtg-ai/claude-squad) by smtg-ai, also AGPL-3.0; the original
 copyright and license are retained.
 
 "Claude" is a trademark of Anthropic. This project is not affiliated with or endorsed by Anthropic.
-
