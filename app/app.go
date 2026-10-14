@@ -370,26 +370,26 @@ func (m *home) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			msg.instance.AutoYes = true
 		}
 
+		var setupCmd tea.Cmd
 		if msg.promptAfterName {
 			m.state = statePrompt
 			m.menu.SetState(ui.StatePrompt)
 			m.textInputOverlay = m.newPromptOverlay()
 		} else {
-			// If instance has a prompt (set from Shift+N flow), send it now
+			// Send the prompt from the Shift+N flow, or just get the agent past its trust and
+			// first-run screens. Both wait for the program to boot, so they run as commands.
 			if msg.instance.Prompt != "" {
-				// async: SendPrompt waits for the program to boot; don't freeze the UI
-				go func(inst *session.Instance, prompt string) {
-					if err := inst.SendPrompt(prompt); err != nil {
-						log.ErrorLog.Printf("failed to send prompt: %v", err)
-					}
-				}(msg.instance, msg.instance.Prompt)
+				setupCmd = sendPromptCmd(msg.instance, msg.instance.Prompt)
 				msg.instance.Prompt = ""
+			} else {
+				inst := msg.instance
+				setupCmd = func() tea.Msg { return inst.HandleStartupScreens() }
 			}
 			m.menu.SetState(ui.StateDefault)
 			m.showHelpScreen(helpStart(msg.instance), nil)
 		}
 
-		return m, tea.Batch(tea.WindowSize(), m.instanceChanged())
+		return m, tea.Batch(tea.WindowSize(), m.instanceChanged(), setupCmd)
 	case spinner.TickMsg:
 		var cmd tea.Cmd
 		m.spinner, cmd = m.spinner.Update(msg)
@@ -555,6 +555,7 @@ func (m *home) handleKeyPress(msg tea.KeyMsg) (mod tea.Model, cmd tea.Cmd) {
 				return m, m.cancelPromptOverlay()
 			}
 
+			var sendCmd tea.Cmd
 			if m.textInputOverlay.IsSubmitted() {
 				prompt := m.textInputOverlay.GetValue()
 				selectedBranch := m.textInputOverlay.GetSelectedBranch()
@@ -591,24 +592,20 @@ func (m *home) handleKeyPress(msg tea.KeyMsg) (mod tea.Model, cmd tea.Cmd) {
 				}
 
 				// Regular flow: instance already running, just send prompt
-				go func(inst *session.Instance) {
-					if err := inst.SendPrompt(prompt); err != nil {
-						log.ErrorLog.Printf("failed to send prompt: %v", err)
-					}
-				}(selected)
+				sendCmd = sendPromptCmd(selected, prompt)
 			}
 
 			// Close the overlay and reset state
 			m.textInputOverlay = nil
 			m.state = stateDefault
-			return m, tea.Sequence(
+			return m, tea.Batch(sendCmd, tea.Sequence(
 				tea.WindowSize(),
 				func() tea.Msg {
 					m.menu.SetState(ui.StateDefault)
 					m.showHelpScreen(helpStart(selected), nil)
 					return nil
 				},
-			)
+			))
 		}
 
 		// Schedule a debounced branch search if the filter changed
@@ -1174,4 +1171,16 @@ func (m *home) View() string {
 	}
 
 	return mainView
+}
+
+// sendPromptCmd delivers a prompt in the background (SendPrompt waits for the agent to boot);
+// a failure, e.g. the agent waiting on a setup screen, shows up as an error in the UI.
+func sendPromptCmd(inst *session.Instance, prompt string) tea.Cmd {
+	return func() tea.Msg {
+		if err := inst.SendPrompt(prompt); err != nil {
+			log.ErrorLog.Printf("failed to send prompt: %v", err)
+			return err
+		}
+		return nil
+	}
 }

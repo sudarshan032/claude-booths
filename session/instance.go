@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/atotto/clipboard"
@@ -64,6 +65,8 @@ type Instance struct {
 	started bool
 	// tmuxSession is the tmux session for the instance.
 	tmuxSession *tmux.TmuxSession
+	// promptMu serializes keystrokes sent on the agent's behalf (startup screens, prompts).
+	promptMu sync.Mutex
 	// gitWorktree is the git worktree for the instance.
 	gitWorktree *git.GitWorktree
 }
@@ -347,18 +350,15 @@ func (i *Instance) HasUpdated() (updated bool, hasPrompt bool) {
 	return i.tmuxSession.HasUpdated()
 }
 
-// CheckAndHandleTrustPrompt checks for and dismisses the trust prompt for supported programs.
-func (i *Instance) CheckAndHandleTrustPrompt() bool {
+// HandleStartupScreens answers the agent's known startup screens (folder trust, first-run
+// questions) so the booth reaches its input box. See tmux.HandleStartupScreens.
+func (i *Instance) HandleStartupScreens() error {
 	if !i.started || i.tmuxSession == nil {
-		return false
+		return nil
 	}
-	program := i.Program
-	if !strings.HasSuffix(program, tmux.ProgramClaude) &&
-		!strings.HasSuffix(program, tmux.ProgramAider) &&
-		!strings.HasSuffix(program, tmux.ProgramGemini) {
-		return false
-	}
-	return i.tmuxSession.CheckAndHandleTrustPrompt()
+	i.promptMu.Lock()
+	defer i.promptMu.Unlock()
+	return i.tmuxSession.HandleStartupScreens(20 * time.Second)
 }
 
 // TapEnter sends an enter key press to the tmux session if AutoYes is enabled.
@@ -649,17 +649,17 @@ func (i *Instance) SendPrompt(prompt string) error {
 	if i.tmuxSession == nil {
 		return fmt.Errorf("tmux session not initialized")
 	}
-	// Wait for the program to finish booting (startup hooks etc.): pane unchanged for
-	// 1s, capped at 20s. Otherwise the Enter below lands mid-startup and is dropped.
-	prev, _ := i.tmuxSession.CapturePaneContent()
-	for stable, deadline := 0, time.Now().Add(20*time.Second); stable < 4 && time.Now().Before(deadline); {
-		time.Sleep(250 * time.Millisecond)
-		cur, _ := i.tmuxSession.CapturePaneContent()
-		if cur == prev {
-			stable++
-		} else {
-			stable, prev = 0, cur
+	i.promptMu.Lock()
+	defer i.promptMu.Unlock()
+	// Wait for the program to finish booting (startup hooks etc.), answering trust and
+	// first-run screens on the way. Typing into one of those would pick its selected option
+	// (Claude Code's trust menu starts on "No, exit") instead of delivering the prompt.
+	if err := i.tmuxSession.HandleStartupScreens(20 * time.Second); err != nil {
+		var se *tmux.SetupScreenError
+		if errors.As(err, &se) {
+			return fmt.Errorf("%w; the prompt was not sent", err)
 		}
+		return err
 	}
 
 	if err := i.tmuxSession.SendKeys(prompt); err != nil {
