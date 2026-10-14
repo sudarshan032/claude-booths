@@ -3,6 +3,7 @@ package session
 import (
 	"claude-booths/config"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"time"
 )
@@ -93,29 +94,31 @@ func (s *Storage) LoadInstances() ([]*Instance, error) {
 	return instances, nil
 }
 
-// DeleteInstance removes an instance from storage
-func (s *Storage) DeleteInstance(title string) error {
-	instances, err := s.LoadInstances()
-	if err != nil {
-		return fmt.Errorf("failed to load instances: %w", err)
-	}
+// ErrInstanceNotFound is returned when no stored instance has the given title.
+var ErrInstanceNotFound = errors.New("instance not found")
 
-	found := false
-	newInstances := make([]*Instance, 0)
-	for _, instance := range instances {
-		data := instance.ToInstanceData()
-		if data.Title != title {
-			newInstances = append(newInstances, instance)
-		} else {
-			found = true
+// DeleteInstance removes an instance from storage. It works on the stored data directly:
+// rebuilding every instance (as LoadInstances does) would reattach to all their tmux sessions,
+// and one booth that fails to restore would make the delete fail.
+func (s *Storage) DeleteInstance(title string) error {
+	var data []InstanceData
+	if err := json.Unmarshal(s.state.GetInstances(), &data); err != nil {
+		return fmt.Errorf("failed to unmarshal instances: %w", err)
+	}
+	kept := data[:0]
+	for _, d := range data {
+		if d.Title != title {
+			kept = append(kept, d)
 		}
 	}
-
-	if !found {
-		return fmt.Errorf("instance not found: %s", title)
+	if len(kept) == len(data) {
+		return fmt.Errorf("%w: %s", ErrInstanceNotFound, title)
 	}
-
-	return s.SaveInstances(newInstances)
+	jsonData, err := json.Marshal(kept)
+	if err != nil {
+		return fmt.Errorf("failed to marshal instances: %w", err)
+	}
+	return s.state.SaveInstances(jsonData)
 }
 
 // UpdateInstance updates an existing instance in storage

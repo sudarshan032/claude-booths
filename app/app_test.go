@@ -462,3 +462,42 @@ func TestConfirmationModalVisualAppearance(t *testing.T) {
 	// Test that the danger indicator is preserved
 	assert.Contains(t, rendered, "[!")
 }
+
+// Shift+N used to offer (and start) the config's default profile even when -p named another
+// program, so `claude-booths -p codex` + Shift+N started claude.
+func TestPromptProfilesPreferProgramFlag(t *testing.T) {
+	cfg := &config.Config{
+		DefaultProgram: "claude",
+		Profiles:       []config.Profile{{Name: "claude", Program: "claude"}, {Name: "aider", Program: "aider"}},
+	}
+	h := &home{appConfig: cfg, program: "codex"}
+	require.Equal(t, []config.Profile{{Name: "codex", Program: "codex"}}, h.promptProfiles())
+
+	h.program = cfg.GetProgram() // no -p
+	require.Len(t, h.promptProfiles(), 2)
+	require.Equal(t, "claude", h.promptProfiles()[0].Program)
+}
+
+// A booth whose tmux session died used to keep showing as ready (●) forever.
+func TestMetadataPausesBoothWhoseSessionIsGone(t *testing.T) {
+	sp := spinner.New()
+	h := &home{ctx: context.Background(), appConfig: config.DefaultConfig(), list: ui.NewList(&sp, false)}
+	inst, err := session.NewInstance(session.InstanceOptions{Title: "dead", Path: t.TempDir(), Program: "sh"})
+	require.NoError(t, err)
+	inst.SetStatus(session.Ready)
+
+	_, _ = h.Update(metadataUpdateDoneMsg{results: []instanceMetaResult{{instance: inst, gone: true}}})
+	require.Equal(t, session.Paused, inst.Status)
+}
+
+// What a confirmed action returns (e.g. "branch is checked out") used to be dropped, so a
+// failed delete left the booth in place with no message.
+func TestConfirmedActionResultIsDelivered(t *testing.T) {
+	h := &home{ctx: context.Background(), state: stateDefault, appConfig: config.DefaultConfig()}
+	h.confirmAction("[!] Kill session 'x'?", func() tea.Msg { return fmt.Errorf("boom") })
+
+	_, cmd := h.handleKeyPress(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("y")})
+	require.NotNil(t, cmd)
+	require.EqualError(t, cmd().(error), "boom")
+	require.Equal(t, stateDefault, h.state)
+}

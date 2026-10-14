@@ -1,6 +1,7 @@
 package app
 
 import (
+	"claude-booths/cmd"
 	"claude-booths/config"
 	"claude-booths/keys"
 	"claude-booths/log"
@@ -11,6 +12,7 @@ import (
 	"claude-booths/ui/overlay"
 	"claude-booths/ui/theme"
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -94,6 +96,9 @@ type home struct {
 	// appState stores persistent application state like seen help screens
 	appState config.AppState
 
+	// confirmResult is what the last confirmed action returned, delivered after the modal closes.
+	confirmResult tea.Msg
+
 	// -- State --
 
 	// state is the current discrete state of the application
@@ -173,6 +178,11 @@ func newHome(ctx context.Context, program string, autoYes bool) *home {
 		fmt.Printf("Failed to load instances: %v\n", err)
 		os.Exit(1)
 	}
+	titles := make([]string, 0, len(instances))
+	for _, inst := range instances {
+		titles = append(titles, inst.Title)
+	}
+	tmux.CleanupOrphanTerminals(cmd.MakeExecutor(), titles)
 
 	// Add loaded instances to the list
 	for _, instance := range instances {
@@ -274,6 +284,13 @@ func (m *home) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		for _, r := range msg.results {
 			// Skip instances that were paused while metadata was being computed
 			if r.instance.Status == session.Paused {
+				continue
+			}
+			if r.gone {
+				// Its program exited or the session was killed: showing it as ready would
+				// hide that. Paused keeps the worktree, and r starts the agent again.
+				log.WarningLog.Printf("tmux session for %q is gone; pausing the booth", r.instance.Title)
+				r.instance.SetStatus(session.Paused)
 				continue
 			}
 			if r.updated {
@@ -610,6 +627,12 @@ func (m *home) handleKeyPress(msg tea.KeyMsg) (mod tea.Model, cmd tea.Cmd) {
 		if shouldClose {
 			m.state = stateDefault
 			m.confirmationOverlay = nil
+			// Deliver what the confirmed action returned (an error to show, or a refresh);
+			// it used to be dropped, so a failed delete just left the booth there silently.
+			if res := m.confirmResult; res != nil {
+				m.confirmResult = nil
+				return m, func() tea.Msg { return res }
+			}
 			return m, nil
 		}
 		return m, nil
@@ -742,8 +765,9 @@ func (m *home) handleKeyPress(msg tea.KeyMsg) (mod tea.Model, cmd tea.Cmd) {
 			// Clean up terminal session for this instance
 			m.tabbedWindow.CleanupTerminalForInstance(selected.Title)
 
-			// Delete from storage first
-			if err := m.storage.DeleteInstance(selected.Title); err != nil {
+			// Delete from storage first. A booth that never got saved isn't there, which
+			// must not stop it from being removed.
+			if err := m.storage.DeleteInstance(selected.Title); err != nil && !errors.Is(err, session.ErrInstanceNotFound) {
 				return err
 			}
 
@@ -945,6 +969,7 @@ type instanceMetaResult struct {
 	instance  *session.Instance
 	updated   bool
 	hasPrompt bool
+	gone      bool // the booth's tmux session disappeared
 	diffStats *git.DiffStats
 }
 
@@ -997,6 +1022,9 @@ func tickUpdateMetadataCmd(active []*session.Instance, selected *session.Instanc
 				defer wg.Done()
 				r := &results[i]
 				r.instance = instance
+				if r.gone = instance.SessionGone(); r.gone {
+					return
+				}
 				r.updated, r.hasPrompt = instance.HasUpdated()
 				if instance == selected {
 					r.diffStats = instance.ComputeDiff()
@@ -1062,7 +1090,16 @@ func (m *home) handleError(err error) tea.Cmd {
 }
 
 func (m *home) newPromptOverlay() *overlay.TextInputOverlay {
-	return overlay.NewTextInputOverlayWithBranchPicker("Enter prompt", "", m.appConfig.GetProfiles())
+	return overlay.NewTextInputOverlayWithBranchPicker("Enter prompt", "", m.promptProfiles())
+}
+
+// promptProfiles is what the new-booth dialog offers. A -p program wins over the config's
+// profiles: offering (and defaulting to) the config's would start the wrong agent.
+func (m *home) promptProfiles() []config.Profile {
+	if m.program != "" && m.program != m.appConfig.GetProgram() {
+		return []config.Profile{{Name: m.program, Program: m.program}}
+	}
+	return m.appConfig.GetProfiles()
 }
 
 // cancelPromptOverlay cancels the prompt overlay, cleaning up unstarted instances.
@@ -1096,7 +1133,7 @@ func (m *home) confirmAction(message string, action tea.Cmd) tea.Cmd {
 		m.state = stateDefault
 		// Execute the action if it exists
 		if action != nil {
-			_ = action()
+			m.confirmResult = action()
 		}
 	}
 

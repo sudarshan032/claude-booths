@@ -335,6 +335,11 @@ func (i *Instance) Preview() (string, error) {
 	return i.tmuxSession.CapturePaneContent()
 }
 
+// SessionGone reports whether a running booth's tmux session has disappeared under it.
+func (i *Instance) SessionGone() bool {
+	return i.started && i.Status != Paused && i.tmuxSession != nil && i.tmuxSession.Gone()
+}
+
 func (i *Instance) HasUpdated() (updated bool, hasPrompt bool) {
 	if !i.started {
 		return false, false
