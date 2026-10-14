@@ -135,7 +135,7 @@ func (t *TmuxSession) Start(workDir string) error {
 	if err != nil {
 		// Cleanup any partially created session if any exists.
 		if t.DoesSessionExist() {
-			cleanupCmd := exec.Command("tmux", "kill-session", "-t", t.sanitizedName)
+			cleanupCmd := exec.Command("tmux", "kill-session", "-t="+t.sanitizedName)
 			if cleanupErr := t.cmdExec.Run(cleanupCmd); cleanupErr != nil {
 				err = fmt.Errorf("%v (cleanup error: %v)", err, cleanupErr)
 			}
@@ -543,14 +543,18 @@ func (t *TmuxSession) Detach() {
 func (t *TmuxSession) Close() error {
 	var errs []error
 
-	if err := t.stopClient(); err != nil {
+	if err := t.stopClient(); err != nil && !errors.Is(err, os.ErrClosed) {
 		errs = append(errs, fmt.Errorf("error closing PTY: %w", err))
 	}
 	t.ptmx = nil
 
-	cmd := exec.Command("tmux", "kill-session", "-t", t.sanitizedName)
-	if err := t.cmdExec.Run(cmd); err != nil {
-		errs = append(errs, fmt.Errorf("error killing tmux session: %w", err))
+	// A session whose program already exited is gone: that's the goal, not a failure.
+	// "-t=" matches exactly; plain "-t" falls back to a prefix match and could kill another booth.
+	if t.DoesSessionExist() {
+		cmd := exec.Command("tmux", "kill-session", "-t="+t.sanitizedName)
+		if err := t.cmdExec.Run(cmd); err != nil && t.DoesSessionExist() {
+			errs = append(errs, fmt.Errorf("error killing tmux session: %w", err))
+		}
 	}
 
 	if len(errs) == 0 {
@@ -565,6 +569,13 @@ func (t *TmuxSession) Close() error {
 		errMsg += "\n  - " + err.Error()
 	}
 	return errors.New(errMsg)
+}
+
+// Gone reports whether the session's tmux session has disappeared (its program exited, or
+// someone killed it). Cheap while the output stream is alive: tmux is only asked once the
+// stream has ended on its own.
+func (t *TmuxSession) Gone() bool {
+	return !t.streaming.Load() && !t.attached.Load() && !t.DoesSessionExist()
 }
 
 // SetDetachedSize set the width and height of the session while detached. This makes the
@@ -649,9 +660,36 @@ func CleanupSessions(cmdExec cmd.Executor) error {
 
 	for _, match := range matches {
 		log.InfoLog.Printf("cleaning up session: %s", match)
-		if err := cmdExec.Run(exec.Command("tmux", "kill-session", "-t", match)); err != nil {
+		if err := cmdExec.Run(exec.Command("tmux", "kill-session", "-t="+match)); err != nil {
 			return fmt.Errorf("failed to kill tmux session %s: %v", match, err)
 		}
 	}
 	return nil
+}
+
+// TerminalSessionName is the tmux session behind a booth's Terminal tab.
+func TerminalSessionName(boothTitle string) string {
+	return toClaudeBoothsTmuxName("term_" + boothTitle)
+}
+
+// CleanupOrphanTerminals kills Terminal-tab sessions (claudebooths_term_*) whose booth no
+// longer exists, e.g. left behind by an older version or a crash. Agent sessions are never
+// touched.
+func CleanupOrphanTerminals(cmdExec cmd.Executor, boothTitles []string) {
+	out, err := cmdExec.Output(exec.Command("tmux", "list-sessions", "-F", "#{session_name}"))
+	if err != nil {
+		return // no tmux server
+	}
+	keep := make(map[string]bool, len(boothTitles))
+	for _, title := range boothTitles {
+		keep[TerminalSessionName(title)] = true
+	}
+	for _, name := range strings.Fields(string(out)) {
+		if !strings.HasPrefix(name, TmuxPrefix+"term_") || keep[name] {
+			continue
+		}
+		if err := cmdExec.Run(exec.Command("tmux", "kill-session", "-t="+name)); err != nil {
+			log.WarningLog.Printf("could not remove orphan terminal session %s: %v", name, err)
+		}
+	}
 }

@@ -29,6 +29,17 @@ versions: [SemVer](https://semver.org/). Forked from claude-squad v1.0.20.
   (two idle sessions: 124 tmux processes per 10 s → 0).
 
 ### Fixed
+- `-p` was ignored by Shift+N: the new booth dialog offered (and started) the config's
+  default program. With `-p`, that program is the only choice.
+- Deleting a booth left its Terminal tab's tmux session running when the tab hadn't been
+  opened in this run; leftover `claudebooths_term_*` sessions without a booth are removed at
+  startup.
+- Deleting a booth whose agent had already exited could fail and leave the booth; errors
+  from confirmed actions are now shown instead of dropped, and killing a tmux session uses an
+  exact name match (a prefix match could hit another booth's session).
+- A booth whose tmux session died kept showing as ready; it now shows as paused (`r` starts
+  the agent again in the same worktree).
+- Deleting a booth no longer reattaches to every other booth's tmux session.
 - Preview kept showing "Setting up workspace..." or another booth's screen when a booth's
   screen couldn't be read, so a ready booth looked stuck; it now says what's wrong.
 - Detaching (Ctrl+Q) from an idle session hung forever, leaving you stuck in full screen:

@@ -42,12 +42,15 @@ type TerminalPane struct {
 
 	isScrolling bool
 	viewport    viewport.Model
+
+	newSession func(name, program string) *tmux.TmuxSession // tests swap in mocks
 }
 
 func NewTerminalPane() *TerminalPane {
 	return &TerminalPane{
-		sessions: make(map[string]*terminalSession),
-		viewport: viewport.New(0, 0),
+		sessions:   make(map[string]*terminalSession),
+		viewport:   viewport.New(0, 0),
+		newSession: tmux.NewTmuxSession,
 	}
 }
 
@@ -146,14 +149,14 @@ func (t *TerminalPane) ensureSessionLocked(instance *session.Instance) error {
 	}
 
 	termName := "term_" + instance.Title
-	ts := tmux.NewTmuxSession(termName, shell)
+	ts := t.newSession(termName, shell)
 
 	// Check if session already exists (e.g. from a previous run)
 	if ts.DoesSessionExist() {
 		if err := ts.Restore(); err != nil {
 			// Session exists but can't restore, kill it and start fresh
 			_ = ts.Close()
-			ts = tmux.NewTmuxSession(termName, shell)
+			ts = t.newSession(termName, shell)
 			if err := ts.Start(worktreePath); err != nil {
 				return fmt.Errorf("terminal pane: failed to start session: %w", err)
 			}
@@ -214,18 +217,19 @@ func (t *TerminalPane) Close() {
 	t.fallbackText = ""
 }
 
-// CloseForInstance kills the cached terminal session for a specific instance.
+// CloseForInstance kills the terminal session for a specific instance, also when this run
+// never opened it (it may be left over from a previous run).
 func (t *TerminalPane) CloseForInstance(title string) {
 	t.mu.Lock()
 	defer t.mu.Unlock()
-	if s, ok := t.sessions[title]; ok {
-		if s.tmuxSession != nil {
-			if err := s.tmuxSession.Close(); err != nil {
-				log.InfoLog.Printf("terminal pane: failed to close session for %s: %v", title, err)
-			}
-		}
-		delete(t.sessions, title)
+	s, ok := t.sessions[title]
+	if !ok || s.tmuxSession == nil {
+		s = &terminalSession{tmuxSession: t.newSession("term_"+title, "")}
 	}
+	if err := s.tmuxSession.Close(); err != nil {
+		log.InfoLog.Printf("terminal pane: failed to close session for %s: %v", title, err)
+	}
+	delete(t.sessions, title)
 	if t.currentTitle == title {
 		t.currentTitle = ""
 		t.content = ""

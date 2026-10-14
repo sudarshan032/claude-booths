@@ -205,3 +205,89 @@ func TestStopClientEndsPumpOfIdleSession(t *testing.T) {
 	require.Less(t, time.Since(start), 2*time.Second, "stopClient waited for its timeout instead of ending the pump")
 	require.False(t, session.streaming.Load())
 }
+
+// Deleting a booth whose agent already exited must not fail on its gone tmux session, and
+// must never fall back to tmux's prefix match (which could kill another booth's session).
+func TestCloseSessionAlreadyGone(t *testing.T) {
+	var ran []string
+	cmdExec := cmd_test.MockCmdExec{
+		RunFunc: func(cmd *exec.Cmd) error {
+			ran = append(ran, cmd.String())
+			if strings.Contains(cmd.String(), "has-session") {
+				return fmt.Errorf("exit status 1")
+			}
+			return nil
+		},
+		OutputFunc: func(cmd *exec.Cmd) ([]byte, error) { return nil, nil },
+	}
+	session := NewTmuxSessionWithDeps("gone", "program", NewMockPtyFactory(t), cmdExec)
+	require.NoError(t, session.Close())
+	for _, c := range ran {
+		require.NotContains(t, c, "kill-session", "nothing to kill")
+	}
+}
+
+func TestCloseKillsByExactName(t *testing.T) {
+	var kill string
+	cmdExec := cmd_test.MockCmdExec{
+		RunFunc: func(cmd *exec.Cmd) error {
+			if strings.Contains(cmd.String(), "kill-session") {
+				kill = cmd.String()
+			}
+			return nil
+		},
+		OutputFunc: func(cmd *exec.Cmd) ([]byte, error) { return nil, nil },
+	}
+	session := NewTmuxSessionWithDeps("ab", "program", NewMockPtyFactory(t), cmdExec)
+	require.NoError(t, session.Close())
+	require.Contains(t, kill, "-t="+TmuxPrefix+"ab")
+}
+
+func TestCleanupOrphanTerminalsOnlyKillsTermSessionsWithoutBooth(t *testing.T) {
+	var killed []string
+	cmdExec := cmd_test.MockCmdExec{
+		RunFunc: func(cmd *exec.Cmd) error {
+			if strings.Contains(cmd.String(), "kill-session") {
+				killed = append(killed, cmd.Args[len(cmd.Args)-1])
+			}
+			return nil
+		},
+		OutputFunc: func(cmd *exec.Cmd) ([]byte, error) {
+			return []byte(strings.Join([]string{
+				TmuxPrefix + "alive", TmuxPrefix + "term_alive", // booth exists
+				TmuxPrefix + "term_gone", // orphan
+				TmuxPrefix + "gone",      // agent session: never touched here
+				"work", "term_other",     // not ours
+			}, "\n")), nil
+		},
+	}
+	CleanupOrphanTerminals(cmdExec, []string{"alive"})
+	require.Equal(t, []string{"-t=" + TmuxPrefix + "term_gone"}, killed)
+}
+
+func TestGone(t *testing.T) {
+	exists := true
+	calls := 0
+	cmdExec := cmd_test.MockCmdExec{
+		RunFunc: func(cmd *exec.Cmd) error {
+			if strings.Contains(cmd.String(), "has-session") {
+				calls++
+				if !exists {
+					return fmt.Errorf("exit status 1")
+				}
+			}
+			return nil
+		},
+		OutputFunc: func(cmd *exec.Cmd) ([]byte, error) { return nil, nil },
+	}
+	s := NewTmuxSessionWithDeps("g", "program", NewMockPtyFactory(t), cmdExec)
+
+	s.streaming.Store(true)
+	require.False(t, s.Gone())
+	require.Zero(t, calls, "no tmux call while the stream is alive")
+
+	s.streaming.Store(false)
+	require.False(t, s.Gone())
+	exists = false
+	require.True(t, s.Gone())
+}

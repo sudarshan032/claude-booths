@@ -382,3 +382,24 @@ func TestTerminalPaneKeepsTopRowOfFullPane(t *testing.T) {
 		t.Fatalf("prompt row was cut off:\n%q", out)
 	}
 }
+
+// Deleting a booth must also kill its Terminal-tab session when this run never opened that
+// tab (the session can be left over from an earlier run); it used to be left running.
+func TestCloseForInstanceKillsUncachedTerminalSession(t *testing.T) {
+	var killed []string
+	cmdExec := cmd_test.MockCmdExec{
+		RunFunc: func(cmd *exec.Cmd) error {
+			if strings.Contains(cmd.String(), "kill-session") {
+				killed = append(killed, cmd.String())
+			}
+			return nil // has-session: it exists
+		},
+		OutputFunc: func(cmd *exec.Cmd) ([]byte, error) { return nil, nil },
+	}
+	tp := NewTerminalPane()
+	tp.newSession = func(name, program string) *tmux.TmuxSession { return newMockTmuxSession(t, name, cmdExec) }
+
+	tp.CloseForInstance("my-booth")
+	require.Len(t, killed, 1)
+	require.Contains(t, killed[0], "-t="+tmux.TerminalSessionName("my-booth"))
+}
