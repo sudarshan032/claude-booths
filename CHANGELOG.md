@@ -29,6 +29,14 @@ versions: [SemVer](https://semver.org/). Forked from claude-squad v1.0.20.
   (two idle sessions: 124 tmux processes per 10 s → 0).
 
 ### Fixed
+- New booths got stuck on the agent's folder-trust screen, and a Shift+N prompt's Enter picked
+  Claude Code's preselected "No, exit", so the booth died. Known trust and first-run screens
+  (Claude Code, Gemini CLI, Codex trust; Aider's first-run questions) are now answered first.
+- A prompt was typed into whatever screen the agent showed. Screens claude-booths won't answer
+  for you (Codex's "Update now", unknown yes/no questions) now get an error in the UI and the
+  prompt isn't sent.
+- `-y` didn't work with Claude Code run through a wrapper or with flags, and missed its current
+  permission prompt; with Aider it kept pressing Enter on an already answered question.
 - `-p` was ignored by Shift+N: the new booth dialog offered (and started) the config's
   default program. With `-p`, that program is the only choice.
 - Deleting a booth left its Terminal tab's tmux session running when the tab hadn't been

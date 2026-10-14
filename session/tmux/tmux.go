@@ -20,10 +20,41 @@ import (
 	"github.com/creack/pty"
 )
 
-const ProgramClaude = "claude"
+const (
+	ProgramClaude = "claude"
+	ProgramAider  = "aider"
+	ProgramGemini = "gemini"
+)
 
-const ProgramAider = "aider"
-const ProgramGemini = "gemini"
+// agentOf names the agent a program command runs, by substring so wrappers, paths and flags
+// ("~/bin/claude-trusted", "claude --model x") still count.
+func agentOf(program string) string {
+	p := strings.ToLower(program)
+	for _, a := range []string{ProgramClaude, ProgramAider, ProgramGemini} {
+		if strings.Contains(p, a) {
+			return a
+		}
+	}
+	return ""
+}
+
+// hasPermissionPrompt reports whether the agent is waiting for a yes on a permission or
+// confirmation prompt (what auto-yes answers with Enter). Only the bottom of the pane counts:
+// an answered question stays in scrollback.
+func hasPermissionPrompt(program, content string) bool {
+	switch agentOf(program) {
+	case ProgramClaude:
+		b := strings.Join(paneBottom(content, screenLines), "\n")
+		return strings.Contains(b, "No, and tell Claude what to do differently") || // before 2.1
+			(strings.Contains(b, "Do you want to") && strings.Contains(b, "1. Yes"))
+	case ProgramAider:
+		last := paneBottom(content, 1)
+		return len(last) == 1 && strings.Contains(last[0], "(Y)es/(N)o")
+	case ProgramGemini:
+		return strings.Contains(strings.Join(paneBottom(content, screenLines), "\n"), "Yes, allow once")
+	}
+	return false
+}
 
 // TmuxSession represents a managed tmux session
 type TmuxSession struct {
@@ -188,33 +219,6 @@ func (t *TmuxSession) Start(workDir string) error {
 	return nil
 }
 
-// CheckAndHandleTrustPrompt checks the pane content once for a trust prompt and dismisses it if found.
-// Returns true if the prompt was found and handled.
-func (t *TmuxSession) CheckAndHandleTrustPrompt() bool {
-	content, err := t.CapturePaneContent()
-	if err != nil {
-		return false
-	}
-
-	if strings.HasSuffix(t.program, ProgramClaude) {
-		if strings.Contains(content, "Do you trust the files in this folder?") ||
-			strings.Contains(content, "new MCP server") {
-			if err := t.TapEnter(); err != nil {
-				log.ErrorLog.Printf("could not tap enter on trust/MCP screen: %v", err)
-			}
-			return true
-		}
-	} else {
-		if strings.Contains(content, "Open documentation url for more info") {
-			if err := t.TapDAndEnter(); err != nil {
-				log.ErrorLog.Printf("could not tap enter on trust screen: %v", err)
-			}
-			return true
-		}
-	}
-	return false
-}
-
 // Restore attaches to an existing session and restores the window size
 func (t *TmuxSession) Restore() error {
 	// attach-session against a missing session still forks a process successfully, so the
@@ -269,6 +273,8 @@ func (t *TmuxSession) startPump(ptmx *os.File) {
 type statusMonitor struct {
 	// Store hashes to save memory.
 	prevOutputHash []byte
+	// answeredHash is the screen Enter was last tapped on, so auto-yes answers each prompt once.
+	answeredHash []byte
 }
 
 func newStatusMonitor() *statusMonitor {
@@ -285,16 +291,8 @@ func (m *statusMonitor) hash(s string) []byte {
 
 // TapEnter sends an enter keystroke to the tmux pane.
 func (t *TmuxSession) TapEnter() error {
+	t.monitor.answeredHash = t.monitor.prevOutputHash // HasUpdated won't report this screen's prompt again
 	_, err := t.ptmx.Write([]byte{0x0D})
-	if err != nil {
-		return fmt.Errorf("error sending enter keystroke to PTY: %w", err)
-	}
-	return nil
-}
-
-// TapDAndEnter sends 'D' followed by an enter keystroke to the tmux pane.
-func (t *TmuxSession) TapDAndEnter() error {
-	_, err := t.ptmx.Write([]byte{0x44, 0x0D})
 	if err != nil {
 		return fmt.Errorf("error sending enter keystroke to PTY: %w", err)
 	}
@@ -315,17 +313,14 @@ func (t *TmuxSession) HasUpdated() (updated bool, hasPrompt bool) {
 		return false, false
 	}
 
-	// Only set hasPrompt for claude and aider. Use these strings to check for a prompt.
-	if t.program == ProgramClaude {
-		hasPrompt = strings.Contains(content, "No, and tell Claude what to do differently")
-	} else if strings.HasPrefix(t.program, ProgramAider) {
-		hasPrompt = strings.Contains(content, "(Y)es/(N)o/(D)on't ask again")
-	} else if strings.HasPrefix(t.program, ProgramGemini) {
-		hasPrompt = strings.Contains(content, "Yes, allow once")
-	}
+	hasPrompt = hasPermissionPrompt(t.program, content)
 
-	if !bytes.Equal(t.monitor.hash(content), t.monitor.prevOutputHash) {
-		t.monitor.prevOutputHash = t.monitor.hash(content)
+	h := t.monitor.hash(content)
+	if hasPrompt && bytes.Equal(h, t.monitor.answeredHash) {
+		hasPrompt = false // already answered; the agent just hasn't redrawn yet
+	}
+	if !bytes.Equal(h, t.monitor.prevOutputHash) {
+		t.monitor.prevOutputHash = h
 		return true, hasPrompt
 	}
 	return false, hasPrompt
