@@ -11,9 +11,9 @@
 
 <p align="center">
   <a href="https://github.com/sudarshan032/claude-booths/actions/workflows/ci.yml"><img src="https://github.com/sudarshan032/claude-booths/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
-  <a href="https://github.com/sudarshan032/claude-booths/releases/latest"><img src="https://img.shields.io/github/v/release/sudarshan032/claude-booths?color=8B7CFF" alt="Release"></a>
-  <a href="LICENSE.md"><img src="https://img.shields.io/badge/license-AGPL--3.0-4DF0C0" alt="AGPL-3.0"></a>
-  <img src="https://img.shields.io/badge/macOS%20%7C%20Linux-FFC861" alt="macOS | Linux">
+  <a href="https://github.com/sudarshan032/claude-booths/releases/latest"><img src="https://img.shields.io/github/v/release/sudarshan032/claude-booths?color=5B4BE0" alt="Release"></a>
+  <a href="LICENSE.md"><img src="https://img.shields.io/badge/license-AGPL--3.0-5B4BE0" alt="AGPL-3.0"></a>
+  <img src="https://img.shields.io/badge/macOS%20%7C%20Linux-F5A524" alt="macOS | Linux">
 </p>
 
 <p align="center">
@@ -26,7 +26,7 @@
 </p>
 
 <p align="center">
-  <img src="docs/assets/demo.gif" alt="Opening three booths, hopping between live previews, reading a diff, stepping into a booth and cycling themes" width="100%">
+  <img src="docs/assets/demo.gif" alt="Opening three booths running Claude Code, hopping between live previews, reading a diff, stepping into a booth and cycling themes" width="100%">
 </p>
 
 ## Why booths
@@ -39,7 +39,7 @@ you, and ship the branches that are ready.
 - **Isolated**: each booth works on its own branch in its own worktree. No half-edited files from another task.
 - **Live**: previews are streamed from tmux the moment output changes. Idle booths cost nothing (no polling).
 - **Reviewable**: a diff tab per booth, then push the branch for a PR or check it out locally.
-- **Any agent**: [Claude Code](https://github.com/anthropics/claude-code) by default; [Codex](https://github.com/openai/codex), [Gemini CLI](https://github.com/google-gemini/gemini-cli), [Aider](https://github.com/Aider-AI/aider), Amp or any CLI with `-p`.
+- **Your agent**: [Claude Code](https://github.com/anthropics/claude-code) by default; any terminal agent with `-p`. See [Agents](#agents) for what's verified.
 - **Background mode**: `-y` auto-accepts prompts so booths can finish while you are elsewhere.
 - **Eight themes**: press `t`.
 
@@ -86,15 +86,29 @@ Flags:
   -y, --autoyes          [experimental] All booths automatically accept prompts
 ```
 
-Other agents:
+Other agents (see [Agents](#agents)):
 
 ```bash
-claude-booths -p codex          # needs OPENAI_API_KEY
-claude-booths -p gemini
-claude-booths -p "aider --model ollama_chat/gemma3:1b"
+claude-booths -p codex
+claude-booths -p "aider --model ollama_chat/qwen2.5-coder"
 ```
 
 To make one the default, set `default_program` in the config (path: `claude-booths debug`).
+
+## Agents
+
+We only mark an agent as verified after testing the full flow on that system (open a booth with a
+prompt, live preview, diff, step in and out, restore after restart, delete).
+
+| Agent | macOS | Linux | Start with |
+|---|---|---|---|
+| [Claude Code](https://github.com/anthropics/claude-code) | ✅ verified | 🧪 testing | `claude-booths` |
+| [Codex CLI](https://github.com/openai/codex) | 🧪 testing | 🧪 testing | `claude-booths -p codex` |
+| [Gemini CLI](https://github.com/google-gemini/gemini-cli) | 🧪 testing | 🧪 testing | `claude-booths -p gemini` |
+| [Aider](https://github.com/Aider-AI/aider) | 🧪 testing | 🧪 testing | `claude-booths -p aider` |
+| Amp | 🧪 testing | 🧪 testing | `claude-booths -p amp` |
+
+Native Windows isn't supported (booths need tmux).
 
 ## Keys
 
