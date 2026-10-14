@@ -107,6 +107,9 @@ func (p *PreviewPane) UpdateContent(instance *session.Instance) error {
 		// In normal mode, use the usual preview
 		content, err = instance.Preview()
 		if err != nil {
+			// Never leave the previous booth's screen (or "Setting up workspace...") up: it
+			// looks like this booth is stuck when its session is actually unreadable.
+			p.setFallbackState("Can't read this booth's screen right now. If it doesn't come back,\nquit and reopen claude-booths, or press D to delete the booth.")
 			return err
 		}
 

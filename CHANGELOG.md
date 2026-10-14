@@ -29,6 +29,8 @@ versions: [SemVer](https://semver.org/). Forked from claude-squad v1.0.20.
   (two idle sessions: 124 tmux processes per 10 s → 0).
 
 ### Fixed
+- Preview kept showing "Setting up workspace..." or another booth's screen when a booth's
+  screen couldn't be read, so a ready booth looked stuck; it now says what's wrong.
 - Detaching (Ctrl+Q) from an idle session hung forever, leaving you stuck in full screen:
   closing the PTY doesn't interrupt a blocked read on macOS, so the tmux client is now killed.
 - Ctrl+Q was ignored when it arrived in the same read as other input (typed quickly after

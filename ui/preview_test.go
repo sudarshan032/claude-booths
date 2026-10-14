@@ -444,3 +444,37 @@ func TestPreviewScrollModeUX(t *testing.T) {
 	}
 	require.False(t, p.isScrolling, "scrolling past the bottom should return to the live preview")
 }
+
+// A failed capture used to keep whatever was shown before (another booth's screen, or
+// "Setting up workspace..."), so a ready booth looked stuck.
+func TestPreviewCaptureErrorReplacesStaleContent(t *testing.T) {
+	sessionCreated := false
+	cmdExec := cmd_test.MockCmdExec{
+		RunFunc: func(cmd *exec.Cmd) error {
+			if strings.Contains(cmd.String(), "has-session") && !sessionCreated {
+				return fmt.Errorf("session does not exist")
+			}
+			if strings.Contains(cmd.String(), "new-session") {
+				sessionCreated = true
+			}
+			return nil
+		},
+		OutputFunc: func(cmd *exec.Cmd) ([]byte, error) {
+			if strings.Contains(cmd.String(), "capture-pane") {
+				return nil, fmt.Errorf("exit status 1")
+			}
+			return []byte(""), nil
+		},
+	}
+	setup := setupTestEnvironment(t, cmdExec)
+	defer setup.cleanupFn()
+
+	p := NewPreviewPane()
+	p.SetSize(80, 30)
+	p.setFallbackState("Setting up workspace...")
+
+	require.Error(t, p.UpdateContent(setup.instance))
+	require.True(t, p.previewState.fallback)
+	require.NotContains(t, p.previewState.text, "Setting up workspace")
+	require.Contains(t, p.previewState.text, "Can't read this booth's screen")
+}
