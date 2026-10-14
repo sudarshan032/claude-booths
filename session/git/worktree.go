@@ -1,8 +1,8 @@
 package git
 
 import (
-	"claude-style/config"
-	"claude-style/log"
+	"claude-booths/config"
+	"claude-booths/log"
 	"fmt"
 	"path/filepath"
 	"time"

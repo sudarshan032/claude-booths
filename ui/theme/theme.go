@@ -33,15 +33,15 @@ type Palette struct {
 }
 
 // DefaultName is used when the config names no theme or an unknown one.
-const DefaultName = "claude-style"
+const DefaultName = "claude-booths"
 
 var builtins = map[string]Palette{
-	"claude-style": {
-		Accent: lipgloss.AdaptiveColor{Light: "#874BFD", Dark: "#7D56F4"}, OnAccent: lipgloss.Color("#FFFFDF"),
-		Text: lipgloss.AdaptiveColor{Light: "#1A1A1A", Dark: "#DDDDDD"}, Muted: lipgloss.Color("#808080"), Faint: lipgloss.AdaptiveColor{Light: "#DDDADA", Dark: "#3C3C3C"},
-		SelectedBg: lipgloss.Color("#DDE4F0"), SelectedFg: lipgloss.Color("#1A1A1A"),
-		Success: lipgloss.Color("#51BD73"), Danger: lipgloss.Color("#DE613E"), Warning: lipgloss.Color("#FFCC00"), Info: lipgloss.Color("#36CFC9"),
-		Menu: lipgloss.Color("#AF87FF"),
+	"claude-booths": {
+		Accent: lipgloss.AdaptiveColor{Light: "#5B4BE0", Dark: "#8B7CFF"}, OnAccent: lipgloss.Color("#0F0D1A"),
+		Text: lipgloss.AdaptiveColor{Light: "#1A1726", Dark: "#ECEAF6"}, Muted: lipgloss.AdaptiveColor{Light: "#6B6585", Dark: "#8D88A8"}, Faint: lipgloss.AdaptiveColor{Light: "#D9D5EA", Dark: "#2A2640"},
+		SelectedBg: lipgloss.AdaptiveColor{Light: "#E4E0FF", Dark: "#2B2550"}, SelectedFg: lipgloss.AdaptiveColor{Light: "#1A1726", Dark: "#FFFFFF"},
+		Success: lipgloss.Color("#4DF0C0"), Danger: lipgloss.Color("#FF6B8B"), Warning: lipgloss.Color("#FFC861"), Info: lipgloss.Color("#7FD4FF"),
+		Menu: lipgloss.Color("#FFC861"),
 	},
 	"monokai": {
 		Accent: lipgloss.Color("#F92672"), OnAccent: lipgloss.Color("#272822"),

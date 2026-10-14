@@ -1,11 +1,11 @@
 package ui
 
 import (
-	"claude-style/keys"
-	"claude-style/ui/theme"
+	"claude-booths/keys"
+	"claude-booths/ui/theme"
 	"strings"
 
-	"claude-style/session"
+	"claude-booths/session"
 
 	"github.com/charmbracelet/lipgloss"
 )

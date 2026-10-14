@@ -1,10 +1,10 @@
 package session
 
 import (
-	"claude-style/cmd/cmd_test"
-	"claude-style/internal/testutil"
-	"claude-style/log"
-	"claude-style/session/tmux"
+	"claude-booths/cmd/cmd_test"
+	"claude-booths/internal/testutil"
+	"claude-booths/log"
+	"claude-booths/session/tmux"
 	"fmt"
 	"os"
 	"os/exec"
@@ -41,7 +41,6 @@ func (p *nullPtyFactory) Close() {}
 // and branch survive on disk. Restoring such an instance must park it as Paused so the
 // user can resume it. Returning an error instead is not an option: LoadInstances aborts on
 // the first failure, so one dead session would hide every other instance.
-// See https://github.com/smtg-ai/claude-squad/issues/216.
 func TestStartPausesInstanceWhenTmuxSessionNoLongerExists(t *testing.T) {
 	ptyFactory := &nullPtyFactory{t: t}
 	cmdExec := cmd_test.MockCmdExec{

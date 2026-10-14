@@ -1,4 +1,4 @@
-module claude-style
+module claude-booths
 
 go 1.23.0
 

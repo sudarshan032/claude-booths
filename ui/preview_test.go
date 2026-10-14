@@ -1,10 +1,10 @@
 package ui
 
 import (
-	"claude-style/cmd/cmd_test"
-	"claude-style/log"
-	"claude-style/session"
-	"claude-style/session/tmux"
+	"claude-booths/cmd/cmd_test"
+	"claude-booths/log"
+	"claude-booths/session"
+	"claude-booths/session/tmux"
 	"fmt"
 	"os"
 	"os/exec"
@@ -42,7 +42,7 @@ func setupTestEnvironment(t *testing.T, cmdExec cmd_test.MockCmdExec) *testSetup
 	sessionName := fmt.Sprintf("test-preview-%s-%d-%d", t.Name(), time.Now().UnixNano(), random)
 
 	// Clean up any existing tmux session
-	cleanupCmd := exec.Command("tmux", "kill-session", "-t", "claudestyle_"+sessionName)
+	cleanupCmd := exec.Command("tmux", "kill-session", "-t", "claudebooths_"+sessionName)
 	_ = cleanupCmd.Run() // Ignore errors if session doesn't exist
 
 	// Create instance

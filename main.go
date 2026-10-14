@@ -1,15 +1,15 @@
 package main
 
 import (
-	"claude-style/app"
-	cmd2 "claude-style/cmd"
-	"claude-style/config"
-	"claude-style/daemon"
-	"claude-style/log"
-	"claude-style/session"
-	"claude-style/session/git"
-	"claude-style/session/tmux"
-	"claude-style/ui/theme"
+	"claude-booths/app"
+	cmd2 "claude-booths/cmd"
+	"claude-booths/config"
+	"claude-booths/daemon"
+	"claude-booths/log"
+	"claude-booths/session"
+	"claude-booths/session/git"
+	"claude-booths/session/tmux"
+	"claude-booths/ui/theme"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -27,8 +27,8 @@ var (
 	daemonFlag  bool
 	binName     string
 	rootCmd     = &cobra.Command{
-		Use:   "claude-style",
-		Short: "Claude Style - Manage multiple AI agents like Claude Code, Aider, Codex, and Amp.",
+		Use:   "claude-booths",
+		Short: "Claude Booths - run many AI coding chats side by side, each in its own git worktree.",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := context.Background()
 			log.Initialize(daemonFlag)
@@ -75,14 +75,13 @@ var (
 				log.ErrorLog.Printf("failed to stop daemon: %v", err)
 			}
 
-			tmux.MigrateLegacySessions()
 			return app.Run(ctx, program, autoYes)
 		},
 	}
 
 	resetCmd = &cobra.Command{
 		Use:   "reset",
-		Short: "Reset all stored instances",
+		Short: "Reset all stored booths",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			log.Initialize(false)
 			defer log.Close()
@@ -181,16 +180,16 @@ var (
 		Short: "Print the version number",
 		Run: func(cmd *cobra.Command, args []string) {
 			fmt.Printf("%s version %s\n", binName, version)
-			fmt.Printf("https://github.com/sudarshan032/claude-style/releases/tag/v%s\n", version)
+			fmt.Printf("https://github.com/sudarshan032/claude-booths/releases/tag/v%s\n", version)
 		},
 	}
 )
 
 func init() {
 	rootCmd.Flags().StringVarP(&programFlag, "program", "p", "",
-		"Program to run in new instances (e.g. 'aider --model ollama_chat/gemma3:1b')")
+		"Program to run in new booths (e.g. 'aider --model ollama_chat/gemma3:1b')")
 	rootCmd.Flags().BoolVarP(&autoYesFlag, "autoyes", "y", false,
-		"[experimental] If enabled, all instances will automatically accept prompts")
+		"[experimental] If enabled, all booths will automatically accept prompts")
 	rootCmd.Flags().BoolVar(&daemonFlag, "daemon", false, "Run a program that loads all sessions"+
 		" and runs autoyes mode on them.")
 

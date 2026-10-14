@@ -1,7 +1,7 @@
 package git
 
 import (
-	"claude-style/internal/testutil"
+	"claude-booths/internal/testutil"
 	"os"
 	"testing"
 )

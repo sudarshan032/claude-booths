@@ -87,9 +87,9 @@ jobs:
           CGO_ENABLED: '0'
         run: |
           ext=""; [ "$GOOS" = windows ] && ext=.exe
-          go build -trimpath -o "build/claude-style$ext" .
+          go build -trimpath -o "build/claude-booths$ext" .
       - uses: actions/upload-artifact@v4
         with:
-          name: claude-style-${{ matrix.goos }}-${{ matrix.goarch }}
+          name: claude-booths-${{ matrix.goos }}-${{ matrix.goarch }}
           path: build/*
           retention-days: 7

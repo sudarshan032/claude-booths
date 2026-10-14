@@ -1,7 +1,7 @@
 package session
 
 import (
-	"claude-style/config"
+	"claude-booths/config"
 	"encoding/json"
 	"fmt"
 	"time"

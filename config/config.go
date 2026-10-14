@@ -1,7 +1,7 @@
 package config
 
 import (
-	"claude-style/log"
+	"claude-booths/log"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -10,7 +10,6 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
-	"sync"
 )
 
 const (
@@ -18,40 +17,13 @@ const (
 	defaultProgram = "claude"
 )
 
-var migrateOnce sync.Once
-
 // GetConfigDir returns the path to the application's configuration directory
 func GetConfigDir() (string, error) {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
 		return "", fmt.Errorf("failed to get config home directory: %w", err)
 	}
-	dir := filepath.Join(homeDir, ".claude-style")
-	migrateOnce.Do(func() { migrateFromClaudeSquad(filepath.Join(homeDir, ".claude-squad"), dir) })
-	return dir, nil
-}
-
-// migrateFromClaudeSquad copies config.json and state.json from a claude-squad install on
-// first run. Existing worktrees stay where they are: state.json records absolute paths.
-func migrateFromClaudeSquad(oldDir, newDir string) {
-	if _, err := os.Stat(newDir); err == nil {
-		return
-	}
-	if _, err := os.Stat(oldDir); err != nil {
-		return
-	}
-	if err := os.MkdirAll(newDir, 0755); err != nil {
-		return
-	}
-	for _, name := range []string{ConfigFileName, StateFileName} {
-		data, err := os.ReadFile(filepath.Join(oldDir, name))
-		if err != nil {
-			continue
-		}
-		if err := os.WriteFile(filepath.Join(newDir, name), data, 0644); err != nil {
-			fmt.Fprintf(os.Stderr, "claude-style: migrating %s from %s: %v\n", name, oldDir, err) // may run before log init
-		}
-	}
+	return filepath.Join(homeDir, ".claude-booths"), nil
 }
 
 // Profile represents a named program configuration
@@ -72,7 +44,7 @@ type Config struct {
 	BranchPrefix string `json:"branch_prefix"`
 	// Profiles is a list of named program profiles.
 	Profiles []Profile `json:"profiles,omitempty"`
-	// Theme is the color theme name (see `claude-style themes`); empty means the default.
+	// Theme is the color theme name (see `claude-booths themes`); empty means the default.
 	Theme string `json:"theme,omitempty"`
 }
 

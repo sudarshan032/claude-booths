@@ -59,7 +59,7 @@ detect_platform_and_arch() {
 
 get_latest_version() {
     # Get latest version from GitHub API, including prereleases
-    API_RESPONSE=$(curl -sS "https://api.github.com/repos/sudarshan032/claude-style/releases")
+    API_RESPONSE=$(curl -sS "https://api.github.com/repos/sudarshan032/claude-booths/releases")
     if [ $? -ne 0 ]; then
         echo "Failed to connect to GitHub API"
         exit 1
@@ -143,7 +143,7 @@ extract_and_install() {
     fi
 
     # Install binary with desired name
-    mv "${tmp_dir}/claude-style${extension}" "$bin_dir/$INSTALL_NAME${extension}"
+    mv "${tmp_dir}/claude-booths${extension}" "$bin_dir/$INSTALL_NAME${extension}"
     rm -rf "$tmp_dir"
 
     if [ ! -f "$bin_dir/$INSTALL_NAME${extension}" ]; then
@@ -267,7 +267,7 @@ check_and_install_dependencies() {
 
 main() {
     # Parse command line arguments
-    INSTALL_NAME="claude-style"
+    INSTALL_NAME="claude-booths"
     UPGRADE_MODE=false
     
     while [[ $# -gt 0 ]]; do
@@ -296,8 +296,8 @@ main() {
         VERSION=$(get_latest_version)
     fi
 
-    RELEASE_URL="https://github.com/sudarshan032/claude-style/releases/download/v${VERSION}"
-    ARCHIVE_NAME="claude-style_${VERSION}_${PLATFORM}_${ARCHITECTURE}${ARCHIVE_EXT}"
+    RELEASE_URL="https://github.com/sudarshan032/claude-booths/releases/download/v${VERSION}"
+    ARCHIVE_NAME="claude-booths_${VERSION}_${PLATFORM}_${ARCHITECTURE}${ARCHIVE_EXT}"
     BINARY_URL="${RELEASE_URL}/${ARCHIVE_NAME}"
     TMP_DIR=$(mktemp -d)
     

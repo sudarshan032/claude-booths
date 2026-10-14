@@ -1,7 +1,7 @@
 package git
 
 import (
-	"claude-style/log"
+	"claude-booths/log"
 	"fmt"
 	"os"
 	"os/exec"

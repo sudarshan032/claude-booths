@@ -3,9 +3,9 @@
 ## Setup
 
 ```bash
-git clone git@github.com:sudarshan032/claude-style.git && cd claude-style
+git clone git@github.com:sudarshan032/claude-booths.git && cd claude-booths
 go mod download
-go build -o ~/.local/bin/claude-style .
+go build -o ~/.local/bin/claude-booths .
 ```
 
 Requires Go (version pinned by the `toolchain` line in `go.mod`), `tmux` and `git`.
@@ -17,8 +17,8 @@ Requires Go (version pinned by the `toolchain` line in `go.mod`), `tmux` and `gi
 | Go version | `toolchain` line in `go.mod` (CI and release read it from there) |
 | App version | `version` in `main.go`; release tags must match (`release.yml` checks) |
 | User-facing changes | `CHANGELOG.md` (`## Unreleased` until a release is cut) |
-| Config/state location | `config.GetConfigDir()` → `~/.claude-style` |
-| tmux session naming | `tmux.TmuxPrefix` (`claudestyle_`) |
+| Config/state location | `config.GetConfigDir()` → `~/.claude-booths` |
+| tmux session naming | `tmux.TmuxPrefix` (`claudebooths_`) |
 | Colors | `ui/theme` palettes only; styles are built in `theme.OnChange` hooks (no hard-coded colors elsewhere) |
 | CI | `.github/workflows/ci.yml` (test, lint, build); releases: `release.yml` + `.goreleaser.yaml` |
 
