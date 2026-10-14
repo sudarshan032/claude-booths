@@ -1,8 +1,8 @@
 package ui
 
 import (
-	"claude-style/session"
-	"claude-style/ui/theme"
+	"claude-booths/session"
+	"claude-booths/ui/theme"
 	"fmt"
 	"strings"
 
@@ -81,7 +81,7 @@ func (p *PreviewPane) setFallbackState(message string) {
 func (p *PreviewPane) UpdateContent(instance *session.Instance) error {
 	switch {
 	case instance == nil:
-		p.setFallbackState("No agents running yet. Spin up a new instance with 'n' to get started!")
+		p.setFallbackState("No booths open yet. Press 'n' to open one: each booth is its own chat in its own workspace.")
 		return nil
 	case instance.Status == session.Loading:
 		p.setFallbackState("Setting up workspace...")
@@ -93,7 +93,7 @@ func (p *PreviewPane) UpdateContent(instance *session.Instance) error {
 			lipgloss.NewStyle().
 				Foreground(theme.Current().Warning).
 				Render(fmt.Sprintf(
-					"The instance can be checked out at '%s' (copied to your clipboard)",
+					"The booth can be checked out at '%s' (copied to your clipboard)",
 					instance.Branch,
 				)),
 		))
@@ -113,7 +113,7 @@ func (p *PreviewPane) UpdateContent(instance *session.Instance) error {
 		// Always update the preview state with content, even if empty
 		// This ensures that newly created instances will display their content immediately
 		if len(content) == 0 && !instance.Started() {
-			p.setFallbackState("Please enter a name for the instance.")
+			p.setFallbackState("Please enter a name for the booth.")
 		} else {
 			// Update the preview state with the current content
 			p.previewState = previewState{

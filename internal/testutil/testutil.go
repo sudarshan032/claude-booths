@@ -1,4 +1,4 @@
-// Package testutil keeps tests away from the developer's real state: ~/.claude-style,
+// Package testutil keeps tests away from the developer's real state: ~/.claude-booths,
 // git worktrees under it, and the default tmux server with live sessions.
 package testutil
 

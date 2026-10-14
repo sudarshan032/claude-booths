@@ -1,8 +1,8 @@
 package overlay
 
 import (
-	"claude-style/config"
-	"claude-style/ui/theme"
+	"claude-booths/config"
+	"claude-booths/ui/theme"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/textarea"

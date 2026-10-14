@@ -1,0 +1,369 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Claude Booths</title>
+<meta name="description" content="Run many AI coding chats side by side in one terminal. Each booth gets its own git worktree and tmux session, so nothing collides.">
+<meta property="og:title" content="Claude Booths">
+<meta property="og:description" content="Many chats. One terminal. Zero collisions.">
+<meta property="og:image" content="https://sudarshan032.github.io/claude-booths/assets/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="assets/logo.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink: #0F0D1A; --ink-2: #16132A; --ink-3: #1C1834; --line: #2A2640;
+  --text: #ECEAF6; --muted: #8D88A8;
+  --accent: #8B7CFF; --mint: #4DF0C0; --lamp: #FFC861; --coral: #FF6B8B; --sky: #7FD4FF;
+  --radius: 18px;
+  --mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+  --sans: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: var(--ink); color: var(--text); font: 17px/1.6 var(--sans); overflow-x: hidden; }
+a { color: inherit; }
+code, pre, kbd { font-family: var(--mono); }
+.wrap { max-width: 1160px; margin: 0 auto; padding: 0 24px; }
+
+/* background: aurora + grid + cursor spotlight */
+.sky { position: fixed; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
+.sky::before { content: ""; position: absolute; inset: 0;
+  background-image: linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px);
+  background-size: 56px 56px; opacity: .35;
+  mask-image: radial-gradient(ellipse at 50% 0%, #000 0%, transparent 70%); }
+.blob { position: absolute; width: 60vmax; height: 60vmax; border-radius: 50%; filter: blur(90px); opacity: .32; animation: drift 22s ease-in-out infinite alternate; }
+.blob.a { background: var(--accent); top: -30vmax; left: -15vmax; }
+.blob.b { background: var(--mint); top: -25vmax; right: -25vmax; opacity: .16; animation-delay: -7s; }
+.blob.c { background: var(--lamp); top: 40vh; left: 30vw; opacity: .08; animation-delay: -14s; }
+@keyframes drift { to { transform: translate(8vmax, 6vmax) scale(1.15); } }
+.spot { position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background: radial-gradient(500px circle at var(--mx, 50%) var(--my, 30%), rgba(139,124,255,.12), transparent 60%); }
+
+/* nav */
+nav { position: sticky; top: 0; z-index: 10; backdrop-filter: blur(14px); background: rgba(15,13,26,.6); border-bottom: 1px solid rgba(42,38,64,.6); }
+nav .wrap { display: flex; align-items: center; gap: 24px; height: 64px; }
+.brand { display: flex; align-items: center; gap: 10px; font-weight: 700; text-decoration: none; letter-spacing: -.01em; }
+.brand img { width: 30px; height: 30px; }
+nav .links { margin-left: auto; display: flex; gap: 22px; font-size: 15px; color: var(--muted); }
+nav .links a { text-decoration: none; transition: color .2s; }
+nav .links a:hover { color: var(--text); }
+@media (max-width: 640px) { nav .links a:not(.gh) { display: none; } }
+
+/* hero */
+.hero { padding-top: 88px; padding-bottom: 40px; text-align: center; }
+.pill { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; border: 1px solid var(--line); border-radius: 99px; font-size: 14px; color: var(--muted); background: rgba(28,24,52,.6); }
+.pill b { color: var(--mint); font-weight: 500; }
+h1 { font-size: clamp(42px, 8vw, 88px); line-height: 1.02; letter-spacing: -.04em; margin: 22px 0 18px; }
+h1 .grad { background: linear-gradient(100deg, var(--accent) 10%, var(--sky) 45%, var(--mint) 70%, var(--lamp) 95%); background-size: 200% auto;
+  -webkit-background-clip: text; background-clip: text; color: transparent; animation: shine 6s linear infinite; }
+@keyframes shine { to { background-position: 200% center; } }
+.lede { max-width: 680px; margin: 0 auto; color: var(--muted); font-size: clamp(17px, 2.2vw, 20px); }
+.lede strong { color: var(--text); font-weight: 500; }
+.cta { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; margin-top: 34px; }
+.install { min-width: 0; display: flex; align-items: center; gap: 12px; max-width: 100%; padding: 14px 16px 14px 20px; border-radius: 14px; background: var(--ink-2); border: 1px solid var(--line); font: 14px var(--mono); }
+.install code { flex: 1; min-width: 0; overflow-x: auto; white-space: nowrap; scrollbar-width: none; }
+.install .p { color: var(--lamp); }
+button.copy { border: 0; border-radius: 9px; padding: 7px 12px; background: var(--accent); color: var(--ink); font: 600 13px var(--sans); cursor: pointer; transition: transform .15s, background .2s; }
+button.copy:hover { transform: translateY(-1px); }
+button.copy.ok { background: var(--mint); }
+.btn { display: inline-flex; align-items: center; gap: 8px; padding: 14px 22px; border-radius: 14px; text-decoration: none; font-weight: 500; border: 1px solid var(--line); background: rgba(28,24,52,.6); transition: border-color .2s, transform .2s; }
+.btn:hover { border-color: var(--accent); transform: translateY(-2px); }
+
+/* booths row */
+.booths { display: flex; justify-content: center; align-items: flex-end; gap: clamp(10px, 2vw, 22px); margin: 80px auto 0; height: 230px; max-width: 760px; position: relative; }
+.booths::after { content: ""; position: absolute; left: 0; right: 0; bottom: -4px; height: 6px; border-radius: 6px; background: var(--mint); box-shadow: 0 0 30px rgba(77,240,192,.5); }
+.booth { position: relative; flex: 1; max-width: 120px; height: 72%; border: 4px solid var(--accent); border-bottom: 0; border-radius: 60px 60px 0 0; transition: background .5s, box-shadow .5s, border-color .5s; }
+.booth:nth-child(odd) { height: 88%; }
+.booth .win { position: absolute; left: 22%; right: 22%; top: 34%; height: 18px; border-radius: 9px; background: rgba(139,124,255,.45); }
+.booth .bubble { position: absolute; left: 50%; top: -46px; transform: translate(-50%, 8px) scale(.8); opacity: 0; padding: 6px 12px; border-radius: 12px; background: var(--ink-3); border: 1px solid var(--line); font: 12px var(--mono); white-space: nowrap; color: var(--text); transition: all .35s; }
+.booth .bubble::after { content: ""; position: absolute; left: 50%; bottom: -6px; width: 10px; height: 10px; background: var(--ink-3); border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); transform: translateX(-50%) rotate(45deg); }
+.booth.on { background: linear-gradient(180deg, #FFE3A3, var(--lamp)); border-color: var(--lamp); box-shadow: 0 0 60px rgba(255,200,97,.45), 0 -10px 80px rgba(255,200,97,.25); }
+.booth.on .win { background: var(--ink); }
+.booth.on .bubble { opacity: 1; transform: translate(-50%, 0) scale(1); }
+.booth .dots::after { content: "…"; animation: dots 1s steps(3) infinite; }
+@media (max-width: 560px) { .booth:nth-child(n+5) { display: none; } .booth .bubble { font-size: 10px; } }
+
+/* demo window */
+.demo { margin: 90px auto 0; max-width: 1040px; perspective: 1600px; }
+.window { border-radius: 16px; overflow: hidden; border: 1px solid var(--line); background: var(--ink-2);
+  box-shadow: 0 40px 120px -20px rgba(139,124,255,.45), 0 0 0 1px rgba(139,124,255,.15);
+  transform: rotateX(var(--tilt, 14deg)); transform-origin: 50% 100%; transition: transform .15s linear; }
+.window img { display: block; width: 100%; height: auto; }
+.caption { text-align: center; color: var(--muted); font-size: 14px; margin-top: 16px; }
+
+/* sections */
+section { padding-top: 120px; }
+.eyebrow { font: 600 13px var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--mint); }
+h2 { font-size: clamp(32px, 5vw, 52px); letter-spacing: -.03em; line-height: 1.08; margin: 10px 0 16px; }
+.sub { color: var(--muted); max-width: 640px; margin: 0 0 40px; }
+
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 18px; }
+.card { position: relative; padding: 28px; border-radius: var(--radius); background: linear-gradient(180deg, rgba(28,24,52,.85), rgba(22,19,42,.85)); border: 1px solid var(--line); overflow: hidden; transition: transform .25s, border-color .25s; }
+.card::before { content: ""; position: absolute; inset: 0; background: radial-gradient(360px circle at var(--cx, 50%) var(--cy, 0%), rgba(139,124,255,.18), transparent 60%); opacity: 0; transition: opacity .3s; }
+.card:hover { transform: translateY(-4px); border-color: rgba(139,124,255,.6); }
+.card:hover::before { opacity: 1; }
+.card .ic { width: 44px; height: 44px; display: grid; place-items: center; border-radius: 12px; background: var(--ink-3); border: 1px solid var(--line); font-size: 22px; margin-bottom: 18px; }
+.card h3 { margin: 0 0 8px; font-size: 20px; letter-spacing: -.01em; }
+.card p { margin: 0; color: var(--muted); font-size: 15.5px; }
+.card code { color: var(--lamp); font-size: 13.5px; }
+
+/* steps terminal */
+.split { display: grid; grid-template-columns: 1fr 1.15fr; gap: 48px; align-items: center; }
+@media (max-width: 860px) { .split { grid-template-columns: 1fr; } }
+.steps { list-style: none; padding: 0; margin: 0; counter-reset: s; }
+.steps li { counter-increment: s; position: relative; padding: 0 0 26px 58px; }
+.steps li::before { content: counter(s); position: absolute; left: 0; top: 0; width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center; font: 600 15px var(--mono); background: var(--ink-3); border: 1px solid var(--line); color: var(--lamp); }
+.steps h3 { margin: 4px 0 4px; font-size: 19px; }
+.steps p { margin: 0; color: var(--muted); font-size: 15.5px; }
+.term { border-radius: var(--radius); background: #0B0915; border: 1px solid var(--line); box-shadow: 0 30px 80px -30px rgba(77,240,192,.25); font: 14px/1.75 var(--mono); }
+.term .bar { display: flex; gap: 8px; padding: 14px 16px; border-bottom: 1px solid var(--line); }
+.term .bar i { width: 12px; height: 12px; border-radius: 50%; background: var(--line); }
+.term .bar i:nth-child(1) { background: var(--coral); } .term .bar i:nth-child(2) { background: var(--lamp); } .term .bar i:nth-child(3) { background: var(--mint); }
+.term pre { margin: 0; padding: 20px 22px 26px; min-height: 290px; white-space: pre-wrap; color: var(--text); }
+.term .c { color: var(--muted); } .term .v { color: var(--accent); } .term .m { color: var(--mint); } .term .l { color: var(--lamp); }
+.caret { display: inline-block; width: .6em; height: 1.1em; vertical-align: -2px; background: var(--accent); animation: blink 1s steps(1) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+@keyframes dots { 0% { content: "."; } 33% { content: ".."; } 66% { content: "..."; } }
+
+/* themes */
+.themes { display: flex; flex-wrap: wrap; gap: 12px; }
+.theme { cursor: pointer; display: flex; align-items: center; gap: 12px; padding: 12px 16px 12px 12px; border-radius: 14px; border: 1px solid var(--line); background: var(--ink-2); color: var(--text); font: 500 15px var(--sans); transition: border-color .2s, transform .2s; }
+.theme:hover { transform: translateY(-2px); }
+.theme[aria-pressed="true"] { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(139,124,255,.2); }
+.sw { display: flex; } .sw span { width: 16px; height: 28px; } .sw span:first-child { border-radius: 8px 0 0 8px; } .sw span:last-child { border-radius: 0 8px 8px 0; }
+
+/* agents marquee */
+.marquee { margin-top: 56px; overflow: hidden; mask-image: linear-gradient(90deg, transparent, #000 15%, #000 85%, transparent); }
+.track { display: flex; gap: 56px; width: max-content; animation: slide 26s linear infinite; font: 600 22px var(--mono); color: var(--muted); }
+.track span::before { content: "◆ "; color: var(--accent); }
+@keyframes slide { to { transform: translateX(-50%); } }
+
+/* keys */
+.keys { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px; }
+.key { display: flex; align-items: center; gap: 14px; padding: 12px 14px; border-radius: 12px; background: var(--ink-2); border: 1px solid var(--line); color: var(--muted); font-size: 15px; }
+kbd { min-width: 34px; text-align: center; padding: 4px 8px; border-radius: 8px; background: var(--ink-3); border: 1px solid var(--line); border-bottom-width: 3px; color: var(--text); font-size: 13px; }
+
+/* final cta */
+.final { margin: 120px 0 0; padding: 70px 24px; text-align: center; border-radius: 28px; border: 1px solid var(--line);
+  background: radial-gradient(600px circle at 50% 120%, rgba(255,200,97,.25), transparent 60%), radial-gradient(500px circle at 10% -20%, rgba(139,124,255,.35), transparent 60%), var(--ink-2); }
+.final img { width: 84px; height: 84px; animation: float 5s ease-in-out infinite; }
+@keyframes float { 50% { transform: translateY(-10px) rotate(-3deg); } }
+footer { padding: 60px 0 50px; color: var(--muted); font-size: 14px; text-align: center; }
+footer a { color: var(--text); }
+
+/* reveal on scroll */
+.reveal { opacity: 0; transform: translateY(28px); transition: opacity .8s ease, transform .8s ease; }
+.reveal.in { opacity: 1; transform: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+  .reveal { opacity: 1; transform: none; }
+  .window { transform: none; }
+}
+</style>
+</head>
+<body>
+<div class="sky"><div class="blob a"></div><div class="blob b"></div><div class="blob c"></div></div>
+<div class="spot"></div>
+
+<nav>
+  <div class="wrap">
+    <a class="brand" href="#"><img src="assets/logo.svg" alt="">Claude Booths</a>
+    <div class="links">
+      <a href="#features">Features</a>
+      <a href="#how">How it works</a>
+      <a href="#themes">Themes</a>
+      <a href="#install">Install</a>
+      <a class="gh" href="https://github.com/sudarshan032/claude-booths">GitHub ↗</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero wrap">
+  <span class="pill reveal"><b>●</b> open source · AGPL-3.0 · macOS &amp; Linux</span>
+  <h1 class="reveal">Many chats.<br><span class="grad">One terminal.</span></h1>
+  <p class="lede reveal">Claude Booths runs your AI coding chats <strong>side by side</strong>. Every booth gets its own
+    <strong>git worktree</strong> and <strong>tmux session</strong>, so five conversations can rewrite five parts of your app without stepping on each other.</p>
+  <div class="cta reveal">
+    <div class="install"><span class="p">$</span><code id="cmd">curl -fsSL https://raw.githubusercontent.com/sudarshan032/claude-booths/main/install.sh | bash</code><button class="copy" data-copy="cmd">Copy</button></div>
+    <a class="btn" href="https://github.com/sudarshan032/claude-booths">★ Star on GitHub</a>
+  </div>
+
+  <div class="booths" aria-hidden="true" id="booths"></div>
+</header>
+
+<div class="demo wrap reveal">
+  <div class="window" id="window"><img src="assets/demo.gif" alt="Claude Booths: three booths open, live previews, a diff, attaching to a booth and cycling themes" width="1440" height="900" loading="lazy"></div>
+  <p class="caption">Three booths, three branches, live previews. Recorded with a scripted demo agent.</p>
+</div>
+
+<section id="features" class="wrap">
+  <div class="eyebrow reveal">Why booths</div>
+  <h2 class="reveal">Parallel work without the merge mess.</h2>
+  <p class="sub reveal">One chat per task, each in its own soundproof booth. You hop between them, glance at live output, and ship what's ready.</p>
+  <div class="grid">
+    <div class="card reveal"><div class="ic">🚪</div><h3>Isolated booths</h3><p>Each chat works in its own git worktree on its own branch. No half-edited files from another task, ever.</p></div>
+    <div class="card reveal"><div class="ic">📡</div><h3>Live, streamed previews</h3><p>Output is pushed by tmux the moment it changes. Idle booths cost nothing: zero polling processes.</p></div>
+    <div class="card reveal"><div class="ic">🔍</div><h3>Review before you ship</h3><p>A diff tab per booth, then <code>p</code> to push the branch or <code>c</code> to check it out and pause.</p></div>
+    <div class="card reveal"><div class="ic">🤖</div><h3>Bring any agent</h3><p>Claude Code by default. Codex, Gemini, Aider or any CLI with <code>-p</code>, plus named profiles.</p></div>
+    <div class="card reveal"><div class="ic">⌨️</div><h3>Step in, step out</h3><p>Press <code>↵</code> to talk to a booth full screen, <code>Ctrl+Q</code> to step back out. Nothing is lost.</p></div>
+    <div class="card reveal"><div class="ic">🎨</div><h3>Eight themes</h3><p>Booths, Dracula, Monokai, Nord, Gruvbox, Solarized, VS Code, Ocean Green. Press <code>t</code>.</p></div>
+  </div>
+  <div class="marquee reveal" aria-hidden="true"><div class="track" id="track"></div></div>
+</section>
+
+<section id="how" class="wrap">
+  <div class="split">
+    <div>
+      <div class="eyebrow reveal">How it works</div>
+      <h2 class="reveal">Open a booth.<br>Say what you need.<br>Walk away.</h2>
+      <ol class="steps">
+        <li class="reveal"><h3>Open</h3><p><code>N</code> names a booth and hands it a prompt. A fresh branch and worktree are cut from HEAD.</p></li>
+        <li class="reveal"><h3>Work in parallel</h3><p>Open more. Each runs in the background in its own tmux session; the list shows who is busy and who is waiting.</p></li>
+        <li class="reveal"><h3>Review &amp; ship</h3><p>Read the diff, step in to steer, then push the branch for a PR. Delete the booth and its worktree goes with it.</p></li>
+      </ol>
+    </div>
+    <div class="term reveal"><div class="bar"><i></i><i></i><i></i></div><pre id="term"></pre></div>
+  </div>
+</section>
+
+<section id="themes" class="wrap">
+  <div class="eyebrow reveal">Make it yours</div>
+  <h2 class="reveal">Eight themes. Try one here.</h2>
+  <p class="sub reveal">Click a theme to repaint this page the way it repaints the app (and each booth's tmux status bar).</p>
+  <div class="themes reveal" id="themelist"></div>
+</section>
+
+<section id="install" class="wrap">
+  <div class="eyebrow reveal">Get started</div>
+  <h2 class="reveal">Install in one line.</h2>
+  <p class="sub reveal">Needs <code>tmux</code> and <code>git</code> (and <code>gh</code> to push branches). Then run <code>claude-booths</code> inside any git repo.</p>
+  <div class="install reveal" style="max-width:820px"><span class="p">$</span><code id="cmd2">curl -fsSL https://raw.githubusercontent.com/sudarshan032/claude-booths/main/install.sh | bash</code><button class="copy" data-copy="cmd2">Copy</button></div>
+  <div class="keys reveal" style="margin-top:28px">
+    <div class="key"><kbd>n</kbd>new booth</div>
+    <div class="key"><kbd>N</kbd>new booth with prompt</div>
+    <div class="key"><kbd>↵</kbd>step inside</div>
+    <div class="key"><kbd>^Q</kbd>step back out</div>
+    <div class="key"><kbd>tab</kbd>preview · diff · terminal</div>
+    <div class="key"><kbd>p</kbd>push branch</div>
+    <div class="key"><kbd>c</kbd>checkout &amp; pause</div>
+    <div class="key"><kbd>t</kbd>next theme</div>
+  </div>
+
+  <div class="final reveal">
+    <img src="assets/logo.svg" alt="">
+    <h2>Your next five tasks,<br>running at once.</h2>
+    <div class="cta"><a class="btn" href="https://github.com/sudarshan032/claude-booths">View on GitHub ↗</a></div>
+  </div>
+</section>
+
+<footer class="wrap">
+  <p>Claude Booths is free software under the <a href="https://github.com/sudarshan032/claude-booths/blob/main/LICENSE.md">AGPL-3.0</a>,
+    built on <a href="https://github.com/smtg-ai/claude-squad">claude-squad</a> by smtg-ai.</p>
+  <p>"Claude" is a trademark of Anthropic. This project is not affiliated with or endorsed by Anthropic.</p>
+</footer>
+
+<script>
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+// booths that light up in turn, each "saying" something
+const lines = ['fix login', 'dark mode', 'write tests', 'refactor api', 'bump deps', 'docs'];
+const row = document.getElementById('booths');
+lines.forEach(t => row.insertAdjacentHTML('beforeend', `<div class="booth"><div class="win"></div><div class="bubble">${t}<span class="dots"></span></div></div>`));
+const booths = [...row.children];
+if (!reduce) {
+  let i = 0;
+  setInterval(() => {
+    booths.forEach(b => b.classList.remove('on'));
+    booths[i % booths.length].classList.add('on');
+    booths[(i + 3) % booths.length].classList.add('on');
+    i++;
+  }, 1400);
+}
+booths[0].classList.add('on'); booths[3].classList.add('on');
+
+// cursor spotlight + card glow
+addEventListener('pointermove', e => {
+  document.documentElement.style.setProperty('--mx', e.clientX + 'px');
+  document.documentElement.style.setProperty('--my', e.clientY + 'px');
+  const c = e.target.closest && e.target.closest('.card');
+  if (c) { const r = c.getBoundingClientRect(); c.style.setProperty('--cx', e.clientX - r.left + 'px'); c.style.setProperty('--cy', e.clientY - r.top + 'px'); }
+});
+
+// demo window flattens as it scrolls into view
+const win = document.getElementById('window');
+const tilt = () => { const r = win.getBoundingClientRect(); const p = Math.min(1, Math.max(0, (innerHeight - r.top) / (innerHeight * .9))); win.style.setProperty('--tilt', (14 * (1 - p)).toFixed(2) + 'deg'); };
+if (!reduce) { addEventListener('scroll', tilt, { passive: true }); tilt(); }
+
+// reveal on scroll
+const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), { threshold: .12 });
+document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+// copy buttons
+document.querySelectorAll('button.copy').forEach(b => b.addEventListener('click', async () => {
+  try { await navigator.clipboard.writeText(document.getElementById(b.dataset.copy).textContent); b.textContent = 'Copied'; b.classList.add('ok'); }
+  catch { b.textContent = 'Select & copy'; }
+  setTimeout(() => { b.textContent = 'Copy'; b.classList.remove('ok'); }, 1800);
+}));
+
+// agents marquee
+const agents = ['Claude Code', 'Codex', 'Gemini CLI', 'Aider', 'Amp', 'any CLI agent'];
+document.getElementById('track').innerHTML = [...agents, ...agents].map(a => `<span>${a}</span>`).join('');
+
+// typing terminal
+const script = [
+  ['<span class="l">~/shop</span> <span class="v">❯</span> ', 'claude-booths', 500],
+  ['<span class="c"># N → name → prompt</span>\n', '', 300],
+  ['<span class="m">●</span> fix-login      <span class="c">booths/fix-login</span>      <span class="m">+6</span>\n', '', 500],
+  ['<span class="m">●</span> dark-mode      <span class="c">booths/dark-mode</span>      <span class="m">+7</span>\n', '', 500],
+  ['<span class="l">⠋</span> checkout-tests <span class="c">booths/checkout-tests</span> <span class="c">working…</span>\n\n', '', 900],
+  ['<span class="c"># ↵ to step inside, ^Q to step out</span>\n', '', 300],
+  ['<span class="v">❯</span> ', 'also cover the /admin route', 600],
+  ['\n<span class="m">✓</span> 12 passed <span class="c">(0.8s)</span>\n\n', '', 600],
+  ['<span class="c"># p pushes the branch for a PR</span>\n', '', 300],
+  ['<span class="m">↗</span> pushed booths/fix-login\n', '', 2400],
+];
+const term = document.getElementById('term');
+async function play() {
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+  for (;;) {
+    let html = '';
+    for (const [pre, typed, wait] of script) {
+      html += pre; term.innerHTML = html + '<span class="caret"></span>';
+      for (const ch of typed) { html += ch; term.innerHTML = html + '<span class="caret"></span>'; await sleep(reduce ? 0 : 45); }
+      await sleep(reduce ? 0 : wait);
+    }
+    if (reduce) return;
+    await sleep(1500);
+  }
+}
+new IntersectionObserver((es, o) => { if (es[0].isIntersecting) { o.disconnect(); play(); } }).observe(term);
+
+// theme switcher, palettes mirror ui/theme/theme.go
+const themes = {
+  'claude-booths': ['#8B7CFF', '#4DF0C0', '#FFC861', '#FF6B8B', '#7FD4FF'],
+  dracula: ['#BD93F9', '#50FA7B', '#F1FA8C', '#FF5555', '#8BE9FD'],
+  gruvbox: ['#FE8019', '#B8BB26', '#FABD2F', '#FB4934', '#83A598'],
+  monokai: ['#F92672', '#A6E22E', '#E6DB74', '#F92672', '#66D9EF'],
+  nord: ['#88C0D0', '#A3BE8C', '#EBCB8B', '#BF616A', '#81A1C1'],
+  'ocean-green': ['#2BB3A3', '#5BE49B', '#F7D774', '#FF6B6B', '#4FC3F7'],
+  solarized: ['#268BD2', '#859900', '#B58900', '#DC322F', '#2AA198'],
+  vscode: ['#007ACC', '#4EC9B0', '#DCDCAA', '#F44747', '#9CDCFE'],
+};
+const list = document.getElementById('themelist');
+for (const [name, c] of Object.entries(themes)) {
+  list.insertAdjacentHTML('beforeend', `<button class="theme" data-t="${name}" aria-pressed="${name === 'claude-booths'}"><span class="sw">${c.map(x => `<span style="background:${x}"></span>`).join('')}</span>${name}</button>`);
+}
+list.addEventListener('click', e => {
+  const b = e.target.closest('.theme'); if (!b) return;
+  const [a, m, l, co, s] = themes[b.dataset.t]; const st = document.documentElement.style;
+  st.setProperty('--accent', a); st.setProperty('--mint', m); st.setProperty('--lamp', l); st.setProperty('--coral', co); st.setProperty('--sky', s);
+  list.querySelectorAll('.theme').forEach(x => x.setAttribute('aria-pressed', x === b));
+});
+</script>
+</body>
+</html>

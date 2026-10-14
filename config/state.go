@@ -1,7 +1,7 @@
 package config
 
 import (
-	"claude-style/log"
+	"claude-booths/log"
 	"encoding/json"
 	"fmt"
 	"os"

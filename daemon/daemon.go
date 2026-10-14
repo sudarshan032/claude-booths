@@ -1,9 +1,9 @@
 package daemon
 
 import (
-	"claude-style/config"
-	"claude-style/log"
-	"claude-style/session"
+	"claude-booths/config"
+	"claude-booths/log"
+	"claude-booths/session"
 	"fmt"
 	"os"
 	"os/exec"
@@ -89,7 +89,7 @@ func RunDaemon(cfg *config.Config) error {
 
 // LaunchDaemon launches the daemon process.
 func LaunchDaemon() error {
-	// Find the claude style binary.
+	// Find the claude booths binary.
 	execPath, err := os.Executable()
 	if err != nil {
 		return fmt.Errorf("failed to get executable path: %w", err)

@@ -1,15 +1,15 @@
 package app
 
 import (
-	"claude-style/config"
-	"claude-style/keys"
-	"claude-style/log"
-	"claude-style/session"
-	"claude-style/session/git"
-	"claude-style/session/tmux"
-	"claude-style/ui"
-	"claude-style/ui/overlay"
-	"claude-style/ui/theme"
+	"claude-booths/config"
+	"claude-booths/keys"
+	"claude-booths/log"
+	"claude-booths/session"
+	"claude-booths/session/git"
+	"claude-booths/session/tmux"
+	"claude-booths/ui"
+	"claude-booths/ui/overlay"
+	"claude-booths/ui/theme"
 	"context"
 	"fmt"
 	"os"
@@ -764,7 +764,7 @@ func (m *home) handleKeyPress(msg tea.KeyMsg) (mod tea.Model, cmd tea.Cmd) {
 		// Create the push action as a tea.Cmd
 		pushAction := func() tea.Msg {
 			// Default commit message with timestamp
-			commitMsg := fmt.Sprintf("[claudestyle] update from '%s' on %s", selected.Title, time.Now().Format(time.RFC822))
+			commitMsg := fmt.Sprintf("[claudebooths] update from '%s' on %s", selected.Title, time.Now().Format(time.RFC822))
 			worktree, err := selected.GetGitWorktree()
 			if err != nil {
 				return err

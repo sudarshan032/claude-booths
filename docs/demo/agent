@@ -1,0 +1,37 @@
+#!/bin/bash
+# Scripted stand-in agent for the demo recording: answers prompts and edits files.
+V=$'\e[38;2;139;124;255m'; M=$'\e[38;2;77;240;192m'; A=$'\e[38;2;255;200;97m'; D=$'\e[38;2;141;136;168m'; B=$'\e[1m'; R=$'\e[0m'
+clear
+printf '%s╭──────────────────────────────────────────╮%s\n' "$V" "$R"
+n=${PWD##*/}; printf '%s│%s %s✻ agent%s  %s· demo · %s%s\n' "$V" "$R" "$B" "$R" "$D" "${n%_*}" "$R"
+printf '%s╰──────────────────────────────────────────╯%s\n' "$V" "$R"
+spin() { local f='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏' i=0 n=$(( $1 * 10 )); while [ $i -lt $n ]; do printf '\r%s%s%s %s' "$A" "${f:i%10:1}" "$R" "$2"; sleep 0.1; i=$((i+1)); done; printf '\r\e[K'; }
+say() { printf '%s\n' "$*"; sleep 0.35; }
+edit() { mkdir -p "$(dirname "$1")"; printf '%s\n' "${@:2}" >> "$1"; printf '  %s●%s %s %s(+%d)%s\n' "$M" "$R" "$1" "$D" "$(($#-1))" "$R"; sleep 0.4; }
+while true; do
+  printf '\n%s❯%s ' "$V" "$R"
+  IFS= read -r line || exit 0
+  [ -z "$line" ] && continue
+  spin 2 "Thinking…"
+  case "$line" in
+    *login*|*auth*)
+      say "I'll fix the redirect after sign-in."
+      edit src/auth/redirect.ts "export function safeRedirect(to: string) {" "  return to.startsWith('/') ? to : '/';" "}"
+      edit src/auth/redirect.test.ts "test('blocks external urls', () => {" "  expect(safeRedirect('https://evil.io')).toBe('/');" "});"
+      say "${M}✓${R} Login now returns users to the page they came from." ;;
+    *dark*|*theme*)
+      say "Adding a dark mode toggle that remembers the choice."
+      edit src/ui/theme.css ":root[data-theme=dark] {" "  --bg: #0f0d1a;" "  --fg: #eceaf6;" "}"
+      edit src/ui/ThemeToggle.tsx "export const ThemeToggle = () => (" "  <button onClick={toggle}>🌙</button>" ");"
+      say "${M}✓${R} Toggle added to the header; preference saved." ;;
+    *test*)
+      say "Writing tests for the checkout flow."
+      edit tests/checkout.spec.ts "test('applies coupon', async () => {" "  expect(total(cart, 'SAVE10')).toBe(90);" "});" "test('rejects expired coupon', async () => {" "  expect(() => total(cart, 'OLD')).toThrow();" "});"
+      spin 2 "Running tests…"
+      say "${M}✓${R} 12 passed ${D}(0.8s)${R}" ;;
+    *)
+      say "On it."
+      spin 1 "Working…"
+      say "${M}✓${R} Done." ;;
+  esac
+done

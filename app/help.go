@@ -1,11 +1,11 @@
 package app
 
 import (
-	"claude-style/log"
-	"claude-style/session"
-	"claude-style/ui"
-	"claude-style/ui/overlay"
-	"claude-style/ui/theme"
+	"claude-booths/log"
+	"claude-booths/session"
+	"claude-booths/ui"
+	"claude-booths/ui/overlay"
+	"claude-booths/ui/theme"
 	"fmt"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -36,9 +36,9 @@ func helpStart(instance *session.Instance) helpText {
 
 func (h helpTypeGeneral) toContent() string {
 	content := lipgloss.JoinVertical(lipgloss.Left,
-		titleStyle.Render("Claude Style"),
+		titleStyle.Render("Claude Booths"),
 		"",
-		"A terminal UI that manages multiple Claude Code (and other local agents) in separate workspaces.",
+		"Run many AI coding chats side by side, each in its own booth: a private git worktree.",
 		"",
 		headerStyle.Render("Managing:"),
 		keyStyle.Render("n")+descStyle.Render("         - Create a new session"),
@@ -65,7 +65,7 @@ func (h helpTypeGeneral) toContent() string {
 
 func (h helpTypeInstanceStart) toContent() string {
 	content := lipgloss.JoinVertical(lipgloss.Left,
-		titleStyle.Render("Instance Created"),
+		titleStyle.Render("Booth Opened"),
 		"",
 		descStyle.Render("New session created:"),
 		descStyle.Render(fmt.Sprintf("• Git branch: %s (isolated worktree)",
@@ -79,7 +79,7 @@ func (h helpTypeInstanceStart) toContent() string {
 		keyStyle.Render("D")+descStyle.Render("     - Kill (delete) the selected session"),
 		"",
 		headerStyle.Render("Handoff:"),
-		keyStyle.Render("c")+descStyle.Render("     - Checkout this instance's branch"),
+		keyStyle.Render("c")+descStyle.Render("     - Checkout this booth's branch"),
 		keyStyle.Render("p")+descStyle.Render("     - Push branch to GitHub to create a PR"),
 	)
 	return content
@@ -87,7 +87,7 @@ func (h helpTypeInstanceStart) toContent() string {
 
 func (h helpTypeInstanceAttach) toContent() string {
 	content := lipgloss.JoinVertical(lipgloss.Left,
-		titleStyle.Render("Attaching to Instance"),
+		titleStyle.Render("Entering a Booth"),
 		"",
 		descStyle.Render("To detach from a session, press ")+keyStyle.Render("ctrl-q"),
 	)
@@ -96,7 +96,7 @@ func (h helpTypeInstanceAttach) toContent() string {
 
 func (h helpTypeInstanceCheckout) toContent() string {
 	content := lipgloss.JoinVertical(lipgloss.Left,
-		titleStyle.Render("Checkout Instance"),
+		titleStyle.Render("Checkout Booth"),
 		"",
 		"Changes will be committed locally. The branch name has been copied to your clipboard for you to checkout.",
 		"",

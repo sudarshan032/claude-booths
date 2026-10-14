@@ -1,12 +1,12 @@
 package app
 
 import (
-	"claude-style/config"
-	"claude-style/internal/testutil"
-	"claude-style/log"
-	"claude-style/session"
-	"claude-style/ui"
-	"claude-style/ui/overlay"
+	"claude-booths/config"
+	"claude-booths/internal/testutil"
+	"claude-booths/log"
+	"claude-booths/session"
+	"claude-booths/ui"
+	"claude-booths/ui/overlay"
 	"context"
 	"fmt"
 	"os"

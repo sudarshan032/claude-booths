@@ -1,10 +1,10 @@
 package ui
 
 import (
-	"claude-style/log"
-	"claude-style/session"
-	"claude-style/session/tmux"
-	"claude-style/ui/theme"
+	"claude-booths/log"
+	"claude-booths/session"
+	"claude-booths/session/tmux"
+	"claude-booths/ui/theme"
 	"fmt"
 	"os"
 	"strings"
@@ -79,7 +79,7 @@ func (t *TerminalPane) UpdateContent(instance *session.Instance) error {
 	defer t.mu.Unlock()
 
 	if instance == nil {
-		t.setFallbackState("Select an instance to open a terminal")
+		t.setFallbackState("Select a booth to open a terminal")
 		return nil
 	}
 	if instance.Status == session.Paused {
@@ -87,7 +87,7 @@ func (t *TerminalPane) UpdateContent(instance *session.Instance) error {
 		return nil
 	}
 	if !instance.Started() {
-		t.setFallbackState("Instance is not started yet.")
+		t.setFallbackState("This booth is not started yet.")
 		return nil
 	}
 

@@ -1,9 +1,9 @@
 package ui
 
 import (
-	"claude-style/log"
-	"claude-style/session"
-	"claude-style/ui/theme"
+	"claude-booths/log"
+	"claude-booths/session"
+	"claude-booths/ui/theme"
 	"errors"
 	"fmt"
 	"strings"
@@ -162,7 +162,7 @@ func (r *InstanceRenderer) Render(i *session.Instance, idx int, selected bool, h
 
 	diffWidth := runewidth.StringWidth(addedDiff) + runewidth.StringWidth(removedDiff)
 	if diffWidth > 0 {
-		diffWidth += 1
+		diffWidth += 2 // the "," plus a gap so a long branch name never touches the stats
 	}
 
 	// Use fixed width for diff stats to avoid layout issues
@@ -210,7 +210,7 @@ func (r *InstanceRenderer) Render(i *session.Instance, idx int, selected bool, h
 }
 
 func (l *List) String() string {
-	const titleText = " Instances "
+	const titleText = " Booths "
 	const autoYesText = " auto-yes "
 
 	// Write the title.

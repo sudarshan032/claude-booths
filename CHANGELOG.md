@@ -1,21 +1,23 @@
 # Changelog
 
-All notable changes to Claude Style. Format: [Keep a Changelog](https://keepachangelog.com/),
-versions: [SemVer](https://semver.org/). Claude Style forked from claude-squad v1.0.20.
+All notable changes to Claude Booths. Format: [Keep a Changelog](https://keepachangelog.com/),
+versions: [SemVer](https://semver.org/). Forked from claude-squad v1.0.20.
 
 ## Unreleased
 
 ### Added
-- Color themes: `claude-style` (default), `monokai`, `vscode`, `ocean-green`, `dracula`, `nord`,
-  `gruvbox`, `solarized`. Cycle with `t` in the app or use `claude-style themes [name]`; saved in
+- Brand: logo, design system (`BRAND.md`), website (`docs/`), demo GIF and promo loop,
+  all reproducible from `docs/demo/`.
+- Color themes: `claude-booths` (default, new brand palette), `monokai`, `vscode`, `ocean-green`, `dracula`, `nord`,
+  `gruvbox`, `solarized`. Cycle with `t` in the app or use `claude-booths themes [name]`; saved in
   config as `theme`. Also styles each session's tmux status bar.
 
 ### Changed
 - Preview scrolling: mouse wheel / shift+↑↓ move 3 lines (was 1, and the first step only
   entered scroll mode), a `SCROLL nn%` header shows you're looking at history and how to get
   back (Esc, or scroll past the bottom), and the menu shows the scroll key on every tab.
-- Rebranded from claude-squad: binary `claude-style`, config `~/.claude-style`, tmux prefix
-  `claudestyle_`. First run migrates `~/.claude-squad` config/state and renames running sessions.
+- Renamed to Claude Booths: binary `claude-booths`, config `~/.claude-booths`, tmux prefix
+  `claudebooths_`. The UI calls sessions "booths".
 - Branch picker lists branches checked out elsewhere greyed out and unselectable.
 
 ### Performance
@@ -35,4 +37,5 @@ versions: [SemVer](https://semver.org/). Claude Style forked from claude-squad v
 - New session silently vanished when its branch was already checked out elsewhere; now a clear error.
 - Terminal tab hid the top row of the pane (a fresh shell looked empty).
 - Preview replaced the pane's last row with `...`.
-- Tests no longer touch the real `~/.claude-style` or the default tmux server.
+- A long branch name ran into the diff stats in the list.
+- Tests no longer touch the real config dir or the default tmux server.

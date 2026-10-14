@@ -1,7 +1,7 @@
 package ui
 
 import (
-	"claude-style/ui/theme"
+	"claude-booths/ui/theme"
 	"errors"
 	"strings"
 

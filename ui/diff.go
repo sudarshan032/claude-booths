@@ -1,8 +1,8 @@
 package ui
 
 import (
-	"claude-style/session"
-	"claude-style/ui/theme"
+	"claude-booths/session"
+	"claude-booths/ui/theme"
 	"fmt"
 	"strings"
 

@@ -14,7 +14,7 @@ var (
 	ErrorLog   *log.Logger
 )
 
-var logFileName = filepath.Join(os.TempDir(), "claudestyle.log")
+var logFileName = filepath.Join(os.TempDir(), "claudebooths.log")
 
 var globalLogFile *os.File
 
