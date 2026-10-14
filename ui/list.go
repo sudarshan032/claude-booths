@@ -19,7 +19,7 @@ const pausedIcon = "⏸ "
 var (
 	readyStyle, addedLinesStyle, removedLinesStyle, pausedStyle      lipgloss.Style
 	titleStyle, listDescStyle, selectedTitleStyle, selectedDescStyle lipgloss.Style
-	mainTitle, titleLampStyle, titleCountStyle, autoYesStyle         lipgloss.Style
+	titleCountStyle, autoYesStyle                                    lipgloss.Style
 )
 
 func init() {
@@ -32,8 +32,6 @@ func init() {
 		listDescStyle = lipgloss.NewStyle().Padding(0, 1, 1, 1).Foreground(p.Muted)
 		selectedTitleStyle = lipgloss.NewStyle().Padding(1, 1, 0, 1).Background(p.SelectedBg).Foreground(p.SelectedFg)
 		selectedDescStyle = lipgloss.NewStyle().Padding(0, 1, 1, 1).Background(p.SelectedBg).Foreground(p.SelectedFg)
-		mainTitle = lipgloss.NewStyle().Foreground(p.Accent).Bold(true)
-		titleLampStyle = lipgloss.NewStyle().Foreground(p.Warning)
 		titleCountStyle = lipgloss.NewStyle().Foreground(p.Muted)
 		autoYesStyle = lipgloss.NewStyle().Background(p.SelectedBg).Foreground(p.SelectedFg)
 	})
@@ -213,7 +211,7 @@ func (r *InstanceRenderer) Render(i *session.Instance, idx int, selected bool, h
 
 func (l *List) String() string {
 	const autoYesText = " auto-yes "
-	titleText := " " + titleLampStyle.Render("▍") + mainTitle.Render("booths")
+	titleText := " " + PromptLogo(false)
 	if n := len(l.items); n > 0 {
 		titleText += titleCountStyle.Render(fmt.Sprintf("  %d open", n))
 	}

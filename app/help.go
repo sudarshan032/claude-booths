@@ -36,7 +36,7 @@ func helpStart(instance *session.Instance) helpText {
 
 func (h helpTypeGeneral) toContent() string {
 	content := lipgloss.JoinVertical(lipgloss.Left,
-		titleStyle.Render("Claude Booths"),
+		ui.PromptLogo(true),
 		"",
 		"Run Claude Code in parallel: every session gets its own booth, with its own branch, worktree and tmux session.",
 		"",
