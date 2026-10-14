@@ -88,7 +88,7 @@ jobs:
         run: |
           ext=""; [ "$GOOS" = windows ] && ext=.exe
           go build -trimpath -o "build/claude-booths$ext" .
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: claude-booths-${{ matrix.goos }}-${{ matrix.goarch }}
           path: build/*
