@@ -304,3 +304,11 @@ func TestSaveConfig(t *testing.T) {
 		assert.Equal(t, testConfig.BranchPrefix, loadedConfig.BranchPrefix)
 	})
 }
+
+func TestGetConfigDirEnvOverride(t *testing.T) {
+	dir := t.TempDir()
+	t.Setenv("CLAUDE_BOOTHS_HOME", dir)
+	got, err := GetConfigDir()
+	require.NoError(t, err)
+	require.Equal(t, dir, got)
+}
