@@ -11,14 +11,23 @@ that picture, drawn simply: arched booths in indigo, a lamp-amber booth for acti
 
 ## Logo
 
-| Mark | Tile |
-|---|---|
-| <img src="docs/assets/logo.svg" width="64" alt="Claude Booths mark"> | <img src="docs/assets/logo-tile.svg" width="64" alt="Claude Booths app tile"> |
-| `docs/assets/logo.svg`: on white and light surfaces | `docs/assets/logo-tile.svg`: favicon, avatars, social, dark surfaces |
+The o's in "booths" are booths: the first an empty booth, the second lit (a session is working).
 
-- Minimum size 20 px (mark) / 16 px (tile). Clear space: one booth width on every side.
-- Don't recolor, outline, stretch, rotate or add shadows. Don't light a side booth.
-- Wordmark: **Claude Booths** in Geist SemiBold (650), tracking −0.025em next to the mark. Commands and paths are lowercase: `claude-booths`.
+| Asset | Use |
+|---|---|
+| <img src="docs/assets/wordmark.svg" width="220" alt=""> `docs/assets/wordmark.svg` | **Primary logo**: website, README, social, print. Light backgrounds |
+| `docs/assets/wordmark-dark.svg` | Same, for dark backgrounds |
+| <img src="docs/assets/logo-tile.svg" width="40" alt=""> `docs/assets/logo-tile.svg` (= `logo.svg`) | App icon, favicon, GitHub avatar |
+| Pixel banner (in `ui/logo.go`) | The terminal's big banner on the welcome screen |
+| `❯ claude/b[ ][▮]ths` prompt logo (`ui.PromptLogo`) | Everywhere else in the terminal: booth list title, help, narrow panes |
+
+Primary wordmark construction: Geist Black (900) "b ths" with drawn booths, small Geist Mono Bold
+"claude" label above in indigo. Letters keep their natural spacing (−12/1000 em tracking) and each
+booth has 46/1000 em of air on both sides so letters never touch the booths. Glyphs are outlined,
+so the SVGs need no font. Regenerate with `docs/demo/wordmark.py` if the shapes change.
+
+- Minimum size: wordmark 96 px wide, tile 16 px. Clear space: the width of one booth on every side.
+- Don't recolor, outline, stretch or rotate; never light the first booth; keep the lamp amber.
 
 ## Color
 

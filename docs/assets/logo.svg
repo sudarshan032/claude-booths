@@ -1,7 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" role="img" aria-label="Claude Booths">
-  <path d="M5 40V22a6 6 0 0 1 12 0v18" fill="none" stroke="#5B4BE0" stroke-width="3.2" stroke-linejoin="round"/>
-  <path d="M31 40V22a6 6 0 0 1 12 0v18" fill="none" stroke="#5B4BE0" stroke-width="3.2" stroke-linejoin="round"/>
-  <path d="M17.5 40V17a6.5 6.5 0 0 1 13 0v23Z" fill="#F5A524"/>
-  <rect x="20.5" y="22" width="7" height="5" rx="1.6" fill="#17151F"/>
-  <rect x="2" y="39" width="44" height="3.4" rx="1.7" fill="#5B4BE0"/>
+  <rect width="48" height="48" rx="11" fill="#5B4BE0"/>
+  <path d="M6 37V24.5a6.5 6.5 0 0 1 13 0V37Z M9.2 34.6V24.5a3.3 3.3 0 0 1 6.6 0v10.1Z" fill="#fff" fill-rule="evenodd"/>
+  <path d="M22 37V21a10 10 0 0 1 20 0v16Z" fill="#F5A524"/>
+  <rect x="28" y="23.5" width="8" height="4.6" rx="1.4" fill="#141220"/>
 </svg>

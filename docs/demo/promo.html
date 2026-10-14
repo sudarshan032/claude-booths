@@ -16,14 +16,14 @@ html, body { margin: 0; width: 1200px; height: 630px; overflow: hidden; backgrou
 body.frozen .anim, body.frozen .anim * { animation-play-state: paused; }
 .bg { position: absolute; inset: 0; background: linear-gradient(180deg, #F1EFFF, #FFFFFF 70%); }
 .grid { position: absolute; inset: 0; opacity: .3; background-image: linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px); background-size: 48px 48px; mask-image: linear-gradient(180deg, #000, transparent 80%); }
-.brand { position: absolute; left: 72px; top: 64px; display: flex; align-items: center; gap: 16px; font: 700 30px "Geist", sans-serif; letter-spacing: -.02em; }
-.brand img { width: 56px; height: 56px; }
-h1 { position: absolute; left: 72px; top: 150px; margin: 0; font: 700 80px "Geist", sans-serif; line-height: 1.02; letter-spacing: -.045em; }
+.brand { position: absolute; left: 72px; top: 48px; display: flex; align-items: center; gap: 16px; font: 700 30px "Geist", sans-serif; letter-spacing: -.02em; }
+.brand img { height: 66px; }
+h1 { position: absolute; left: 72px; top: 178px; margin: 0; font: 700 80px "Geist", sans-serif; line-height: 1.02; letter-spacing: -.045em; }
 h1 span { display: block; animation-name: rise; }
 h1 span:nth-child(2) { animation-delay: calc(.15s - var(--t)); color: var(--accent); }
 h1 span:nth-child(1) { animation-delay: calc(0s - var(--t)); }
 @keyframes rise { 0% { opacity: 0; transform: translateY(24px); } 8%, 100% { opacity: 1; transform: none; } }
-.tag { position: absolute; left: 72px; top: 330px; width: 470px; font-size: 22px; line-height: 1.45; color: var(--muted); }
+.tag { position: absolute; left: 72px; top: 375px; width: 470px; font-size: 22px; line-height: 1.45; color: var(--muted); }
 .tag b { color: var(--text); font-weight: 500; }
 .url { position: absolute; left: 72px; bottom: 56px; font: 500 18px "Geist Mono", ui-monospace, monospace; color: var(--muted); }
 .url i { font-style: normal; color: var(--accent); }
@@ -43,7 +43,7 @@ h1 span:nth-child(1) { animation-delay: calc(0s - var(--t)); }
 </head>
 <body>
 <div class="bg"></div><div class="grid"></div>
-<div class="brand"><img src="../assets/logo-tile.svg" alt="">Claude Booths</div>
+<div class="brand"><img src="../assets/wordmark.svg" alt="Claude Booths"></div>
 <div class="anim"><h1><span>Claude Code,</span><span>in parallel.</span></h1></div>
 <p class="tag">One booth per task. Every booth has its own <b>branch</b>, <b>worktree</b> and <b>tmux session</b>, so sessions never collide.</p>
 <div class="url"><i>$</i> github.com/sudarshan032/claude-booths</div>

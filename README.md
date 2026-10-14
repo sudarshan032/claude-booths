@@ -1,8 +1,9 @@
 <p align="center">
-  <img src="docs/assets/logo.svg" width="112" alt="Claude Booths logo">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/wordmark-dark.svg">
+    <img src="docs/assets/wordmark.svg" width="420" alt="Claude Booths">
+  </picture>
 </p>
-
-<h1 align="center">Claude Booths</h1>
 
 <p align="center">
   <b>Run Claude Code in parallel, one booth per task.</b><br>
