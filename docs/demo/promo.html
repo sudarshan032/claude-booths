@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1200">
+<title>Claude Booths Promo</title>
+<!-- 6 s loop rendered to docs/assets/promo.{gif,mp4} and og.png by docs/demo/render-promo.sh.
+     Opened plainly it plays; ?t=1.5 freezes it at that second (used for frame capture). -->
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+:root { --ink: #0F0D1A; --ink-3: #1C1834; --line: #2A2640; --text: #ECEAF6; --muted: #8D88A8; --accent: #8B7CFF; --mint: #4DF0C0; --lamp: #FFC861; --t: 0s; }
+* { box-sizing: border-box; }
+html, body { margin: 0; width: 1200px; height: 630px; overflow: hidden; background: var(--ink); color: var(--text); font-family: "Space Grotesk", sans-serif; }
+.anim, .anim * { animation-duration: 6s; animation-iteration-count: infinite; animation-timing-function: ease; animation-fill-mode: both; }
+body.frozen .anim, body.frozen .anim * { animation-play-state: paused; }
+.bg { position: absolute; inset: 0; background:
+  radial-gradient(700px circle at 0% 0%, rgba(139,124,255,.45), transparent 60%),
+  radial-gradient(600px circle at 100% 10%, rgba(77,240,192,.18), transparent 60%),
+  radial-gradient(700px circle at 70% 120%, rgba(255,200,97,.22), transparent 60%); }
+.grid { position: absolute; inset: 0; opacity: .3; background-image: linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px); background-size: 48px 48px; mask-image: linear-gradient(180deg, #000, transparent 80%); }
+.brand { position: absolute; left: 72px; top: 64px; display: flex; align-items: center; gap: 16px; font-size: 30px; font-weight: 700; letter-spacing: -.02em; }
+.brand img { width: 56px; height: 56px; }
+h1 { position: absolute; left: 72px; top: 150px; margin: 0; font-size: 76px; line-height: 1.02; letter-spacing: -.045em; }
+h1 span { display: block; animation-name: rise; }
+h1 span:nth-child(2) { animation-delay: calc(.15s - var(--t)); background: linear-gradient(100deg, var(--accent), #7FD4FF 45%, var(--mint) 70%, var(--lamp)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+h1 span:nth-child(1) { animation-delay: calc(0s - var(--t)); }
+@keyframes rise { 0% { opacity: 0; transform: translateY(24px); } 8%, 100% { opacity: 1; transform: none; } }
+.tag { position: absolute; left: 72px; top: 330px; width: 470px; font-size: 22px; line-height: 1.45; color: var(--muted); }
+.tag b { color: var(--text); font-weight: 500; }
+.url { position: absolute; left: 72px; bottom: 56px; font: 500 18px "JetBrains Mono", monospace; color: var(--muted); }
+.url i { font-style: normal; color: var(--lamp); }
+
+.row { position: absolute; right: 64px; bottom: 96px; width: 520px; height: 330px; display: flex; align-items: flex-end; gap: 16px; }
+.row::after { content: ""; position: absolute; left: -8px; right: -8px; bottom: -6px; height: 7px; border-radius: 7px; background: var(--mint); box-shadow: 0 0 34px rgba(77,240,192,.6); }
+.b { position: relative; flex: 1; height: 62%; border: 5px solid var(--accent); border-bottom: 0; border-radius: 60px 60px 0 0; animation-name: lamp; }
+.b:nth-child(odd) { height: 76%; }
+.b .w { position: absolute; left: 24%; right: 24%; top: 32%; height: 16px; border-radius: 8px; background: rgba(139,124,255,.45); animation-name: win; }
+.b .q { position: absolute; left: 50%; top: -50px; padding: 7px 12px; border-radius: 12px; background: var(--ink-3); border: 1px solid var(--line); font: 500 14px "JetBrains Mono", monospace; white-space: nowrap; animation-name: say; }
+.b .ok { position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); width: 30px; height: 30px; border-radius: 50%; background: var(--mint); color: var(--ink); display: grid; place-items: center; font-weight: 700; font-size: 18px; animation-name: done; }
+@keyframes lamp { 0%, 6% { background: transparent; border-color: var(--accent); box-shadow: none; } 12%, 84% { background: linear-gradient(180deg, #FFE3A3, var(--lamp)); border-color: var(--lamp); box-shadow: 0 0 60px rgba(255,200,97,.5); } 94%, 100% { background: transparent; border-color: var(--accent); box-shadow: none; } }
+@keyframes win { 0%, 6% { background: rgba(139,124,255,.45); } 12%, 84% { background: var(--ink); } 94%, 100% { background: rgba(139,124,255,.45); } }
+@keyframes say { 0%, 8% { opacity: 0; transform: translate(-50%, 10px) scale(.8); } 14%, 80% { opacity: 1; transform: translate(-50%, 0) scale(1); } 88%, 100% { opacity: 0; transform: translate(-50%, -6px) scale(.9); } }
+@keyframes done { 0%, 52% { opacity: 0; transform: translateX(-50%) scale(.3); } 58%, 84% { opacity: 1; transform: translateX(-50%) scale(1); } 92%, 100% { opacity: 0; transform: translateX(-50%) scale(.6); } }
+</style>
+</head>
+<body>
+<div class="bg"></div><div class="grid"></div>
+<div class="brand"><img src="../assets/logo.svg" alt="">Claude Booths</div>
+<div class="anim"><h1><span>Many chats.</span><span>One terminal.</span></h1></div>
+<p class="tag">Run AI coding chats <b>side by side</b>. Each booth gets its own <b>git worktree</b>, so nothing collides.</p>
+<div class="url"><i>$</i> github.com/sudarshan032/claude-booths</div>
+<div class="row anim" id="row"></div>
+<script>
+const t = parseFloat(new URLSearchParams(location.search).get('t'));
+if (!isNaN(t)) { document.body.classList.add('frozen'); document.documentElement.style.setProperty('--t', t + 's'); }
+const tasks = ['fix login', 'dark mode', 'tests', 'refactor', 'docs'];
+document.getElementById('row').innerHTML = tasks.map((q, i) => {
+  const d = `calc(${(i * 0.35).toFixed(2)}s - var(--t))`;
+  return `<div class="b" style="animation-delay:${d}"><div class="w" style="animation-delay:${d}"></div><div class="q" style="animation-delay:${d}">${q}</div><div class="ok" style="animation-delay:${d}">✓</div></div>`;
+}).join('');
+</script>
+</body>
+</html>
