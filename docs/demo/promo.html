@@ -6,27 +6,26 @@
 <title>Claude Booths Promo</title>
 <!-- 6 s loop rendered to docs/assets/promo.{gif,mp4} and og.png by docs/demo/render-promo.sh.
      Opened plainly it plays; ?t=1.5 freezes it at that second (used for frame capture). -->
-<style>@font-face { font-family: "Unbounded"; src: url(../assets/fonts/unbounded.woff2) format("woff2"); font-weight: 500 800; }
-@font-face { font-family: "Hanken Grotesk"; src: url(../assets/fonts/hanken.woff2) format("woff2"); font-weight: 100 900; }
-@font-face { font-family: "Martian Mono"; src: url(../assets/fonts/martian.woff2) format("woff2"); font-weight: 100 800; }</style>
+<style>@font-face { font-family: "Geist"; src: url(../assets/fonts/geist.woff2) format("woff2"); font-weight: 100 900; }
+@font-face { font-family: "Geist Mono"; src: url(../assets/fonts/geist-mono.woff2) format("woff2"); font-weight: 100 900; }</style>
 <style>
 :root { --ink: #FFFFFF; --ink-3: #FFFFFF; --line: #E6E4EE; --text: #17151F; --muted: #5B5868; --accent: #5B4BE0; --mint: #5B4BE0; --lamp: #F5A524; --t: 0s; }
 * { box-sizing: border-box; }
-html, body { margin: 0; width: 1200px; height: 630px; overflow: hidden; background: var(--ink); color: var(--text); font-family: "Hanken Grotesk", sans-serif; }
+html, body { margin: 0; width: 1200px; height: 630px; overflow: hidden; background: var(--ink); color: var(--text); font-family: "Geist", sans-serif; }
 .anim, .anim * { animation-duration: 6s; animation-iteration-count: infinite; animation-timing-function: ease; animation-fill-mode: both; }
 body.frozen .anim, body.frozen .anim * { animation-play-state: paused; }
 .bg { position: absolute; inset: 0; background: linear-gradient(180deg, #F1EFFF, #FFFFFF 70%); }
 .grid { position: absolute; inset: 0; opacity: .3; background-image: linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px); background-size: 48px 48px; mask-image: linear-gradient(180deg, #000, transparent 80%); }
-.brand { position: absolute; left: 72px; top: 64px; display: flex; align-items: center; gap: 16px; font: 700 30px "Unbounded", sans-serif; letter-spacing: -.02em; }
+.brand { position: absolute; left: 72px; top: 64px; display: flex; align-items: center; gap: 16px; font: 700 30px "Geist", sans-serif; letter-spacing: -.02em; }
 .brand img { width: 56px; height: 56px; }
-h1 { position: absolute; left: 72px; top: 150px; margin: 0; font: 700 64px "Unbounded", sans-serif; line-height: 1.02; letter-spacing: -.045em; }
+h1 { position: absolute; left: 72px; top: 150px; margin: 0; font: 700 80px "Geist", sans-serif; line-height: 1.02; letter-spacing: -.045em; }
 h1 span { display: block; animation-name: rise; }
 h1 span:nth-child(2) { animation-delay: calc(.15s - var(--t)); color: var(--accent); }
 h1 span:nth-child(1) { animation-delay: calc(0s - var(--t)); }
 @keyframes rise { 0% { opacity: 0; transform: translateY(24px); } 8%, 100% { opacity: 1; transform: none; } }
 .tag { position: absolute; left: 72px; top: 330px; width: 470px; font-size: 22px; line-height: 1.45; color: var(--muted); }
 .tag b { color: var(--text); font-weight: 500; }
-.url { position: absolute; left: 72px; bottom: 56px; font: 500 18px "Martian Mono", ui-monospace, monospace; color: var(--muted); }
+.url { position: absolute; left: 72px; bottom: 56px; font: 500 18px "Geist Mono", ui-monospace, monospace; color: var(--muted); }
 .url i { font-style: normal; color: var(--accent); }
 
 .row { position: absolute; right: 64px; bottom: 96px; width: 520px; height: 330px; display: flex; align-items: flex-end; gap: 16px; }
@@ -34,7 +33,7 @@ h1 span:nth-child(1) { animation-delay: calc(0s - var(--t)); }
 .b { position: relative; flex: 1; height: 62%; border: 5px solid var(--accent); border-bottom: 0; border-radius: 60px 60px 0 0; animation-name: lamp; }
 .b:nth-child(odd) { height: 76%; }
 .b .w { position: absolute; left: 24%; right: 24%; top: 32%; height: 16px; border-radius: 8px; background: #E4E0FF; animation-name: win; }
-.b .q { position: absolute; left: 50%; top: -50px; padding: 7px 12px; border-radius: 12px; background: #FFFFFF; color: #17151F; box-shadow: 0 4px 14px -6px rgba(23,21,31,.25); border: 1px solid var(--line); font: 500 14px "Martian Mono", ui-monospace, monospace; white-space: nowrap; animation-name: say; }
+.b .q { position: absolute; left: 50%; top: -50px; padding: 7px 12px; border-radius: 12px; background: #FFFFFF; color: #17151F; box-shadow: 0 4px 14px -6px rgba(23,21,31,.25); border: 1px solid var(--line); font: 500 14px "Geist Mono", ui-monospace, monospace; white-space: nowrap; animation-name: say; }
 .b .ok { position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); width: 30px; height: 30px; border-radius: 50%; background: #15803D; color: #fff; display: grid; place-items: center; font-weight: 700; font-size: 18px; animation-name: done; }
 @keyframes lamp { 0%, 6% { background: transparent; border-color: var(--accent); box-shadow: none; } 12%, 84% { background: var(--lamp); border-color: var(--lamp); box-shadow: 0 18px 40px -12px rgba(245,165,36,.55); } 94%, 100% { background: transparent; border-color: var(--accent); box-shadow: none; } }
 @keyframes win { 0%, 6% { background: #E4E0FF; } 12%, 84% { background: #17151F; } 94%, 100% { background: #E4E0FF; } }
