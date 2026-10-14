@@ -103,11 +103,12 @@ prompt, live preview, diff, step in and out, restore after restart, delete).
 
 | Agent | macOS | Linux | Start with |
 |---|---|---|---|
-| [Claude Code](https://github.com/anthropics/claude-code) | 🧪 testing | 🧪 testing | `claude-booths` |
+| [Claude Code](https://github.com/anthropics/claude-code) | ✅ verified | 🧪 testing | `claude-booths` |
 | [Codex CLI](https://github.com/openai/codex) | 🧪 testing | 🧪 testing | `claude-booths -p codex` |
 | [Gemini CLI](https://github.com/google-gemini/gemini-cli) | 🧪 testing | 🧪 testing | `claude-booths -p gemini` |
 | [Aider](https://github.com/Aider-AI/aider) | 🧪 testing | 🧪 testing | `claude-booths -p aider` |
 | Amp | 🧪 testing | 🧪 testing | `claude-booths -p amp` |
+| [OpenCode](https://opencode.ai) | 🧪 testing | 🧪 testing | `claude-booths -p opencode` |
 
 Native Windows isn't supported (booths need tmux).
 
