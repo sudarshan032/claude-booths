@@ -14,16 +14,16 @@ var keyStyle, descStyle, sepStyle, actionGroupStyle, menuStyle lipgloss.Style
 
 func init() {
 	theme.OnChange(func(p theme.Palette) {
-		keyStyle = lipgloss.NewStyle().Foreground(p.Muted)
-		descStyle = lipgloss.NewStyle().Foreground(p.Text)
+		keyStyle = lipgloss.NewStyle().Foreground(p.Text).Bold(true)
+		descStyle = lipgloss.NewStyle().Foreground(p.Muted)
 		sepStyle = lipgloss.NewStyle().Foreground(p.Faint)
 		actionGroupStyle = lipgloss.NewStyle().Foreground(p.Accent)
 		menuStyle = lipgloss.NewStyle().Foreground(p.Menu)
 	})
 }
 
-var separator = " • "
-var verticalSeparator = " │ "
+var separator = "  "
+var verticalSeparator = " ┊ "
 
 // MenuState represents different states the menu can be in
 type MenuState int

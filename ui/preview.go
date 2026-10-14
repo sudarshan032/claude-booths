@@ -28,8 +28,10 @@ type PreviewPane struct {
 type previewState struct {
 	// fallback is true if the preview pane is displaying fallback text
 	fallback bool
-	// text is the text displayed in the preview pane
+	// text is the text displayed in the preview pane (the message, in fallback mode)
 	text string
+	// keys adds the keys card to the welcome screen
+	keys bool
 }
 
 func NewPreviewPane() *PreviewPane {
@@ -69,19 +71,17 @@ func (p *PreviewPane) scrollHeader() string {
 	return label + hint
 }
 
-// setFallbackState sets the preview state with fallback text and a message
+// setFallbackState shows the welcome screen with message instead of a live pane.
 func (p *PreviewPane) setFallbackState(message string) {
-	p.previewState = previewState{
-		fallback: true,
-		text:     lipgloss.JoinVertical(lipgloss.Center, FallBackText, "", message),
-	}
+	p.previewState = previewState{fallback: true, text: message}
 }
 
 // Updates the preview pane content with the tmux pane content
 func (p *PreviewPane) UpdateContent(instance *session.Instance) error {
 	switch {
 	case instance == nil:
-		p.setFallbackState("No booths open yet. Press 'n' to open one: each booth is its own chat in its own workspace.")
+		p.setFallbackState("No booths open yet. Press n to open one.")
+		p.previewState.keys = true
 		return nil
 	case instance.Status == session.Loading:
 		p.setFallbackState("Setting up workspace...")
@@ -134,10 +134,10 @@ func (p *PreviewPane) String() string {
 
 	if p.previewState.fallback {
 		// Calculate available height for fallback text
-		availableHeight := p.height - 3 - 4 // 2 for borders, 1 for margin, 1 for padding
+		availableHeight := p.height
 
-		// Count the number of lines in the fallback text
-		fallbackLines := len(strings.Split(p.previewState.text, "\n"))
+		welcome := renderWelcome(p.width, availableHeight, p.previewState.text, p.previewState.keys)
+		fallbackLines := lipgloss.Height(welcome)
 
 		// Calculate padding needed above and below to center the content
 		totalPadding := availableHeight - fallbackLines
@@ -153,7 +153,7 @@ func (p *PreviewPane) String() string {
 		if topPadding > 0 {
 			lines = append(lines, strings.Repeat("\n", topPadding))
 		}
-		lines = append(lines, p.previewState.text)
+		lines = append(lines, welcome)
 		if bottomPadding > 0 {
 			lines = append(lines, strings.Repeat("\n", bottomPadding))
 		}
