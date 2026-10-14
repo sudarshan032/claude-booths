@@ -36,12 +36,14 @@ type Palette struct {
 const DefaultName = "claude-booths"
 
 var builtins = map[string]Palette{
+	// Brand: primary indigo, secondary amber "lamp" (BRAND.md). Green/red are semantic only.
 	"claude-booths": {
-		Accent: lipgloss.AdaptiveColor{Light: "#5B4BE0", Dark: "#8B7CFF"}, OnAccent: lipgloss.Color("#0F0D1A"),
-		Text: lipgloss.AdaptiveColor{Light: "#1A1726", Dark: "#ECEAF6"}, Muted: lipgloss.AdaptiveColor{Light: "#6B6585", Dark: "#8D88A8"}, Faint: lipgloss.AdaptiveColor{Light: "#D9D5EA", Dark: "#2A2640"},
-		SelectedBg: lipgloss.AdaptiveColor{Light: "#E4E0FF", Dark: "#2B2550"}, SelectedFg: lipgloss.AdaptiveColor{Light: "#1A1726", Dark: "#FFFFFF"},
-		Success: lipgloss.Color("#4DF0C0"), Danger: lipgloss.Color("#FF6B8B"), Warning: lipgloss.Color("#FFC861"), Info: lipgloss.Color("#7FD4FF"),
-		Menu: lipgloss.Color("#FFC861"),
+		Accent: lipgloss.AdaptiveColor{Light: "#5B4BE0", Dark: "#8B7CFF"}, OnAccent: lipgloss.AdaptiveColor{Light: "#FFFFFF", Dark: "#14122B"},
+		Text: lipgloss.AdaptiveColor{Light: "#1C1B2E", Dark: "#ECEAF6"}, Muted: lipgloss.AdaptiveColor{Light: "#5F5B73", Dark: "#9A96B0"}, Faint: lipgloss.AdaptiveColor{Light: "#D9D7E3", Dark: "#3A3654"},
+		SelectedBg: lipgloss.AdaptiveColor{Light: "#ECEAFD", Dark: "#2B2550"}, SelectedFg: lipgloss.AdaptiveColor{Light: "#1C1B2E", Dark: "#FFFFFF"},
+		Success: lipgloss.AdaptiveColor{Light: "#2F855A", Dark: "#6CCB8F"}, Danger: lipgloss.AdaptiveColor{Light: "#C53030", Dark: "#F07171"},
+		Warning: lipgloss.AdaptiveColor{Light: "#B45309", Dark: "#F5A524"}, Info: lipgloss.AdaptiveColor{Light: "#5B4BE0", Dark: "#A99FFF"},
+		Menu: lipgloss.AdaptiveColor{Light: "#B45309", Dark: "#F5A524"},
 	},
 	"monokai": {
 		Accent: lipgloss.Color("#F92672"), OnAccent: lipgloss.Color("#272822"),

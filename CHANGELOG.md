@@ -14,6 +14,9 @@ versions: [SemVer](https://semver.org/). Forked from claude-squad v1.0.20.
   config as `theme`. Also styles each session's tmux status bar.
 
 ### Changed
+- New welcome screen (booth logo, wordmark, keys card) replaces the big ASCII banner; it shrinks to fit
+  small panes. Underlined tab bar, `▍booths  N open` list title, calmer menu. Default palette is now
+  indigo primary + amber secondary.
 - Preview scrolling: mouse wheel / shift+↑↓ move 3 lines (was 1, and the first step only
   entered scroll mode), a `SCROLL nn%` header shows you're looking at history and how to get
   back (Esc, or scroll past the bottom), and the menu shows the scroll key on every tab.

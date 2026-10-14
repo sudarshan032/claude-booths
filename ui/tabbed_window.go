@@ -4,39 +4,25 @@ import (
 	"claude-booths/log"
 	"claude-booths/session"
 	"claude-booths/ui/theme"
+	"strings"
+
 	"github.com/charmbracelet/lipgloss"
 )
 
-func tabBorderWithBottom(left, middle, right string) lipgloss.Border {
-	border := lipgloss.RoundedBorder()
-	border.BottomLeft = left
-	border.Bottom = middle
-	border.BottomRight = right
-	return border
-}
+// tabBarHeight is the tab bar's rows: a spacer, the labels and the rule that tops the window.
+const tabBarHeight = 3
 
-var (
-	inactiveTabBorder = tabBorderWithBottom("┴", "─", "┴")
-	activeTabBorder   = tabBorderWithBottom("┘", " ", "└")
-
-	inactiveTabStyle, activeTabStyle, windowStyle lipgloss.Style
-)
+var tabLabelStyle, activeTabLabelStyle, tabRuleStyle, activeTabRuleStyle, windowStyle lipgloss.Style
 
 func init() {
 	theme.OnChange(func(p theme.Palette) {
-		inactiveTabStyle = lipgloss.NewStyle().
-			Border(inactiveTabBorder, true).
-			BorderForeground(p.Accent).
-			Foreground(p.Muted).
-			AlignHorizontal(lipgloss.Center)
-		activeTabStyle = inactiveTabStyle.
-			Border(activeTabBorder, true).
-			Foreground(p.Accent).
-			Bold(true).
-			AlignHorizontal(lipgloss.Center)
+		tabLabelStyle = lipgloss.NewStyle().Foreground(p.Muted)
+		activeTabLabelStyle = lipgloss.NewStyle().Foreground(p.Accent).Bold(true)
+		tabRuleStyle = lipgloss.NewStyle().Foreground(p.Faint)
+		activeTabRuleStyle = lipgloss.NewStyle().Foreground(p.Accent)
 		windowStyle = lipgloss.NewStyle().
-			BorderForeground(p.Accent).
-			Border(lipgloss.NormalBorder(), false, true, true, true)
+			BorderForeground(p.Faint).
+			Border(lipgloss.RoundedBorder(), false, true, true, true)
 	})
 }
 
@@ -96,8 +82,7 @@ func (w *TabbedWindow) SetSize(width, height int) {
 	// 1. Tab height (including border and padding)
 	// 2. Window style vertical frame size
 	// 3. Additional padding/spacing (2 for the newline and spacing)
-	tabHeight := activeTabStyle.GetVerticalFrameSize() + 1
-	contentHeight := height - tabHeight - windowStyle.GetVerticalFrameSize() - 2
+	contentHeight := height - tabBarHeight - windowStyle.GetVerticalFrameSize() - 2
 	contentWidth := w.width - windowStyle.GetHorizontalFrameSize()
 
 	w.preview.SetSize(contentWidth, contentHeight)
@@ -229,42 +214,39 @@ func (w *TabbedWindow) String() string {
 		return ""
 	}
 
-	var renderedTabs []string
-
 	totalTabWidth := w.width + windowStyle.GetHorizontalFrameSize()
 	tabWidth := totalTabWidth / len(w.tabs)
 	lastTabWidth := totalTabWidth - tabWidth*(len(w.tabs)-1)
-	tabHeight := activeTabStyle.GetVerticalFrameSize() + 1 // get padding border margin size + 1 for character height
 
+	// Labels over a rule that is the window's top edge; the active tab's stretch is heavy.
+	var labels, rule strings.Builder
 	for i, t := range w.tabs {
 		width := tabWidth
 		if i == len(w.tabs)-1 {
 			width = lastTabWidth
 		}
-
-		var style lipgloss.Style
-		isFirst, isLast, isActive := i == 0, i == len(w.tabs)-1, i == w.activeTab
-		if isActive {
-			style = activeTabStyle
-		} else {
-			style = inactiveTabStyle
+		label, seg := tabLabelStyle, tabRuleStyle
+		ch := "─"
+		if i == w.activeTab {
+			label, seg, ch = activeTabLabelStyle, activeTabRuleStyle, "━"
 		}
-		border, _, _, _, _ := style.GetBorder()
-		if isFirst && isActive {
-			border.BottomLeft = "│"
-		} else if isFirst {
-			border.BottomLeft = "├"
-		} else if isLast && isActive {
-			border.BottomRight = "│"
-		} else if isLast {
-			border.BottomRight = "┤"
+		labels.WriteString(label.Width(width).Align(lipgloss.Center).Render(t))
+		n := width
+		if i == 0 {
+			rule.WriteString(tabRuleStyle.Render("╭"))
+			n--
 		}
-		style = style.Border(border)
-		style = style.Width(width - style.GetHorizontalFrameSize())
-		renderedTabs = append(renderedTabs, style.Render(t))
+		if i == len(w.tabs)-1 {
+			n--
+		}
+		rule.WriteString(seg.Render(strings.Repeat(ch, max(n, 0))))
+		if i == len(w.tabs)-1 {
+			rule.WriteString(tabRuleStyle.Render("╮"))
+		}
 	}
+	row := lipgloss.JoinVertical(lipgloss.Left, strings.Repeat(" ", totalTabWidth), labels.String(), rule.String())
+	tabHeight := tabBarHeight
 
-	row := lipgloss.JoinHorizontal(lipgloss.Top, renderedTabs...)
 	var content string
 	switch w.activeTab {
 	case PreviewTab:

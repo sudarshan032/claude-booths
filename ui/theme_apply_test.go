@@ -13,14 +13,14 @@ func TestThemeSwitchRestylesUI(t *testing.T) {
 	if err := theme.Set("ocean-green"); err != nil {
 		t.Fatal(err)
 	}
-	if mainTitle.GetBackground() != theme.Current().Accent {
-		t.Fatalf("mainTitle background = %v, want ocean-green accent", mainTitle.GetBackground())
+	if mainTitle.GetForeground() != theme.Current().Accent {
+		t.Fatalf("mainTitle foreground = %v, want ocean-green accent", mainTitle.GetForeground())
 	}
-	if windowStyle.GetBorderTopForeground() != theme.Current().Accent {
+	if windowStyle.GetBorderTopForeground() != theme.Current().Faint {
 		t.Fatalf("window border not restyled")
 	}
-	if !strings.Contains(FallBackText, "██") {
-		t.Fatalf("banner lost its art after restyle")
+	if logoLampStyle.GetForeground() != theme.Current().Warning {
+		t.Fatalf("welcome logo not restyled")
 	}
 }
 

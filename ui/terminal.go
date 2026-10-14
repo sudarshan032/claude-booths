@@ -69,7 +69,7 @@ func (t *TerminalPane) SetSize(width, height int) {
 // Caller must hold t.mu.
 func (t *TerminalPane) setFallbackState(message string) {
 	t.fallback = true
-	t.fallbackText = lipgloss.JoinVertical(lipgloss.Center, FallBackText, "", message)
+	t.fallbackText = message
 	t.content = ""
 }
 
@@ -254,9 +254,9 @@ func (t *TerminalPane) String() string {
 	content := t.content
 
 	if fallback {
-		// 3 = tab bar height (border + padding + text), 4 = window style frame (top/bottom border + padding)
-		availableHeight := height - 3 - 4
-		fallbackLines := len(strings.Split(fallbackText, "\n"))
+		availableHeight := height
+		fallbackText = renderWelcome(width, availableHeight, fallbackText, false)
+		fallbackLines := lipgloss.Height(fallbackText)
 		totalPadding := availableHeight - fallbackLines
 		topPadding := 0
 		bottomPadding := 0

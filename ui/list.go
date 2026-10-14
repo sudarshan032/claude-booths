@@ -19,7 +19,7 @@ const pausedIcon = "⏸ "
 var (
 	readyStyle, addedLinesStyle, removedLinesStyle, pausedStyle      lipgloss.Style
 	titleStyle, listDescStyle, selectedTitleStyle, selectedDescStyle lipgloss.Style
-	mainTitle, autoYesStyle                                          lipgloss.Style
+	mainTitle, titleLampStyle, titleCountStyle, autoYesStyle         lipgloss.Style
 )
 
 func init() {
@@ -32,7 +32,9 @@ func init() {
 		listDescStyle = lipgloss.NewStyle().Padding(0, 1, 1, 1).Foreground(p.Muted)
 		selectedTitleStyle = lipgloss.NewStyle().Padding(1, 1, 0, 1).Background(p.SelectedBg).Foreground(p.SelectedFg)
 		selectedDescStyle = lipgloss.NewStyle().Padding(0, 1, 1, 1).Background(p.SelectedBg).Foreground(p.SelectedFg)
-		mainTitle = lipgloss.NewStyle().Background(p.Accent).Foreground(p.OnAccent)
+		mainTitle = lipgloss.NewStyle().Foreground(p.Accent).Bold(true)
+		titleLampStyle = lipgloss.NewStyle().Foreground(p.Warning)
+		titleCountStyle = lipgloss.NewStyle().Foreground(p.Muted)
 		autoYesStyle = lipgloss.NewStyle().Background(p.SelectedBg).Foreground(p.SelectedFg)
 	})
 }
@@ -210,8 +212,11 @@ func (r *InstanceRenderer) Render(i *session.Instance, idx int, selected bool, h
 }
 
 func (l *List) String() string {
-	const titleText = " Booths "
 	const autoYesText = " auto-yes "
+	titleText := " " + titleLampStyle.Render("▍") + mainTitle.Render("booths")
+	if n := len(l.items); n > 0 {
+		titleText += titleCountStyle.Render(fmt.Sprintf("  %d open", n))
+	}
 
 	// Write the title.
 	var b strings.Builder
@@ -223,10 +228,10 @@ func (l *List) String() string {
 	titleWidth := AdjustPreviewWidth(l.width) + 2
 	if !l.autoyes {
 		b.WriteString(lipgloss.Place(
-			titleWidth, 1, lipgloss.Left, lipgloss.Bottom, mainTitle.Render(titleText)))
+			titleWidth, 1, lipgloss.Left, lipgloss.Bottom, titleText))
 	} else {
 		title := lipgloss.Place(
-			titleWidth/2, 1, lipgloss.Left, lipgloss.Bottom, mainTitle.Render(titleText))
+			titleWidth/2, 1, lipgloss.Left, lipgloss.Bottom, titleText)
 		autoYes := lipgloss.Place(
 			titleWidth-(titleWidth/2), 1, lipgloss.Right, lipgloss.Bottom, autoYesStyle.Render(autoYesText))
 		b.WriteString(lipgloss.JoinHorizontal(
