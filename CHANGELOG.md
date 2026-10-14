@@ -6,6 +6,7 @@ versions: [SemVer](https://semver.org/). Forked from claude-squad v1.0.20.
 ## Unreleased
 
 ### Added
+- `CLAUDE_BOOTHS_HOME` env var to keep config, state and worktrees somewhere other than `~/.claude-booths`.
 - Brand: logo, design system (`BRAND.md`), website (`docs/`), demo GIF and promo loop,
   all reproducible from `docs/demo/`.
 - Color themes: `claude-booths` (default, new brand palette), `monokai`, `vscode`, `ocean-green`, `dracula`, `nord`,

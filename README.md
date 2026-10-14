@@ -117,7 +117,8 @@ To make one the default, set `default_program` in the config (path: `claude-boot
 
 ## Configuration
 
-Stored in `~/.claude-booths/config.json` (`claude-booths debug` prints the path).
+Stored in `~/.claude-booths/config.json` (`claude-booths debug` prints the path). Set
+`CLAUDE_BOOTHS_HOME` to use another directory for config, state and worktrees.
 
 | Key | Default | What |
 |---|---|---|

@@ -18,7 +18,11 @@ const (
 )
 
 // GetConfigDir returns the path to the application's configuration directory
+// CLAUDE_BOOTHS_HOME overrides it, e.g. to try things without touching your real booths.
 func GetConfigDir() (string, error) {
+	if dir := os.Getenv("CLAUDE_BOOTHS_HOME"); dir != "" {
+		return dir, nil
+	}
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
 		return "", fmt.Errorf("failed to get config home directory: %w", err)
