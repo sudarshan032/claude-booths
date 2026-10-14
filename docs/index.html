@@ -91,7 +91,8 @@ img, svg { display: block; max-width: 100%; }
 .app { --pri: var(--t-primary); --sec: var(--t-secondary); position: relative; display: grid; grid-template-columns: minmax(220px, 30%) 1fr; grid-template-rows: 1fr auto; gap: 0 14px; height: 560px; padding: 14px 16px 8px; font: 13px/1.5 var(--mono); outline: none; }
 .app:focus-visible { box-shadow: inset 0 0 0 2px var(--pri); border-radius: 0; }
 .list { min-width: 0; overflow: hidden; }
-.list h2 { display: inline-block; margin: 4px 0 14px 8px; padding: 0 8px; border-radius: 4px; background: var(--pri); color: var(--t-bg); font: 600 13px var(--mono); }
+.list h2 { margin: 4px 0 14px 4px; padding-left: 8px; border-left: 3px solid var(--sec); color: var(--pri); font: 600 13px var(--mono); }
+.list h2 span { margin-left: 10px; color: var(--t-dim); font-weight: 400; }
 .booth { display: grid; grid-template-columns: 22px 1fr auto; gap: 0 6px; width: 100%; padding: 8px 10px; border: 0; border-radius: 6px; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
 .booth + .booth { margin-top: 6px; }
 .booth:hover { background: rgba(255,255,255,.04); }
@@ -102,10 +103,10 @@ img, svg { display: block; max-width: 100%; }
 .booth .br { grid-column: 2 / 3; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; color: var(--t-dim); }
 .booth .df { color: var(--t-ok); } .booth .df b { color: var(--t-bad); font-weight: 400; }
 .pane { display: grid; grid-template-rows: auto 1fr; min-width: 0; min-height: 0; }
-.tabs { display: flex; gap: 6px; }
-.tab { flex: 1; min-height: 32px; border: 1px solid var(--t-line); border-bottom: 0; border-radius: 8px 8px 0 0; background: none; color: var(--t-dim); font: inherit; cursor: pointer; }
-.tab[aria-selected="true"] { color: var(--pri); border-color: var(--pri); font-weight: 600; }
-.view { position: relative; min-height: 0; overflow: hidden; border: 1px solid var(--pri); border-radius: 0 0 8px 8px; padding: 10px 14px; white-space: pre-wrap; word-break: break-word; }
+.tabs { display: flex; }
+.tab { flex: 1; min-height: 32px; border: 0; border-bottom: 2px solid transparent; background: none; color: var(--t-dim); font: inherit; cursor: pointer; }
+.tab[aria-selected="true"] { color: var(--pri); border-bottom-color: var(--pri); font-weight: 600; }
+.view { position: relative; min-height: 0; overflow: hidden; border: 1px solid var(--t-line); border-radius: 0 0 8px 8px; padding: 10px 14px; white-space: pre-wrap; word-break: break-word; }
 .menu { grid-column: 1 / -1; padding: 10px 6px 4px; color: var(--t-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .menu b { color: var(--t-text); font-weight: 600; } .menu .sep { color: var(--t-line); padding: 0 6px; }
 /* claude code look inside the pane */
@@ -164,10 +165,7 @@ img, svg { display: block; max-width: 100%; }
 .steps p code, .anatomy code { padding: 1px 6px; border-radius: 5px; background: var(--surface-2); color: var(--text); }
 @media (max-width: 860px) { .steps li, .steps li:nth-child(even) { grid-template-columns: 1fr; gap: 24px; } .steps li:nth-child(even) .copytext { order: 0; } }
 .shot { margin: 0; }
-.ph { position: relative; display: grid; place-items: center; aspect-ratio: 16 / 10; border: 1px dashed var(--gray-300); border-radius: var(--r-lg); background:
-  repeating-linear-gradient(135deg, transparent 0 14px, rgba(91,75,224,.05) 14px 15px), var(--surface); color: var(--text-2); text-align: center; }
-.ph span { display: grid; gap: 8px; justify-items: center; padding: 16px; font-size: 14px; }
-.ph svg { width: 28px; height: 28px; color: var(--gray-300); }
+.shotimg { width: 100%; height: auto; border-radius: var(--r-lg); background: #F1EFFF; box-shadow: 0 0 0 1px var(--border); }
 .shot figcaption { margin-top: 10px; color: var(--text-2); font-size: 14px; }
 
 /* compatibility */
@@ -223,7 +221,6 @@ footer p { margin: 0; }
   <symbol id="i-branch" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="6" cy="5" r="2.5"/><circle cx="6" cy="19" r="2.5"/><circle cx="18" cy="7" r="2.5"/><path d="M6 7.5v9M18 9.5c0 4-6 3.5-11 7"/></g></symbol>
   <symbol id="i-term" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="4" width="19" height="16" rx="3"/><path d="m7 9 3 3-3 3M12.5 15H17"/></g></symbol>
   <symbol id="i-eye" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></g></symbol>
-  <symbol id="i-img" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="1.8"/><path d="m21 16-5-5-9 9"/></g></symbol>
 </svg>
 
 <header class="nav">
@@ -260,7 +257,7 @@ footer p { margin: 0; }
       <div class="titlebar"><i></i><i></i><i></i><span>claude-booths — ~/code/acme-shop</span></div>
       <div class="app" id="app" tabindex="0" role="application" aria-label="Interactive Claude Booths demo. Keys: j and k move, Tab switches tabs, Shift+N opens a booth, Enter steps inside, Control+Q steps out, t changes theme.">
         <div class="list">
-          <h2>Booths</h2>
+          <h2>booths<span id="count">3 open</span></h2>
           <div id="booths" role="listbox" aria-label="Booths"></div>
         </div>
         <div class="pane">
@@ -271,7 +268,7 @@ footer p { margin: 0; }
           </div>
           <div class="view" id="view" aria-live="off"></div>
         </div>
-        <div class="menu"><b>n</b> new <span class="sep">·</span> <b>N</b> new with prompt <span class="sep">·</span> <b>D</b> delete <span class="sep">│</span> <b>↵</b> step inside <span class="sep">·</span> <b>p</b> push <span class="sep">·</span> <b>c</b> checkout <span class="sep">│</span> <b>tab</b> switch <span class="sep">·</span> <b>t</b> theme <span class="sep">·</span> <b>?</b> help</div>
+        <div class="menu"><b>n</b> new  <b>D</b> kill <span class="sep">┊</span> <b>↵/o</b> open  <b>p</b> push branch  <b>c</b> checkout <span class="sep">┊</span> <b>tab</b> switch tab  <b>?</b> help <span class="sep">┊</span> <b>t</b> theme  <b>q</b> quit</div>
         <div class="statusbar" id="statusbar"></div>
         <div class="dialog" id="dialog" hidden>
           <form id="newform" autocomplete="off">
@@ -298,15 +295,15 @@ footer p { margin: 0; }
       <ol class="steps">
         <li>
           <div class="copytext"><h3>Open a booth and say what you need</h3><p>Press <code>N</code>, name the booth and type the task. Claude Booths creates the branch and worktree and hands your prompt to the agent.</p></div>
-          <figure class="shot"><div class="ph" role="img" aria-label="Screenshot placeholder: the new booth dialog"><span><svg aria-hidden="true"><use href="#i-img"/></svg>Screenshot: new booth dialog</span></div><figcaption>Name, prompt and branch in one dialog.</figcaption></figure>
+          <figure class="shot"><img class="shotimg" src="assets/shot-new.webp" width="1440" height="900" loading="lazy" decoding="async" alt="The new booth dialog: name, prompt and branch"><figcaption>Name, prompt and branch in one dialog.</figcaption></figure>
         </li>
         <li>
           <div class="copytext"><h3>Let them work in parallel</h3><p>Open as many booths as you like. The list shows which are working and which are waiting for you; move with <code>j</code> and <code>k</code> to glance at each one.</p></div>
-          <figure class="shot"><div class="ph" role="img" aria-label="Screenshot placeholder: three booths in the list"><span><svg aria-hidden="true"><use href="#i-img"/></svg>Screenshot: three booths working</span></div><figcaption>Live previews for every booth.</figcaption></figure>
+          <figure class="shot"><img class="shotimg" src="assets/shot-booths.webp" width="1440" height="900" loading="lazy" decoding="async" alt="Three booths open; the selected one shows Claude Code's finished answer"><figcaption>Live previews for every booth.</figcaption></figure>
         </li>
         <li>
           <div class="copytext"><h3>Review the diff, then ship it</h3><p>The diff tab shows exactly what changed. Press <code>p</code> to commit and push the branch for a pull request, or <code>c</code> to check it out locally.</p></div>
-          <figure class="shot"><div class="ph" role="img" aria-label="Screenshot placeholder: the diff tab"><span><svg aria-hidden="true"><use href="#i-img"/></svg>Screenshot: diff tab</span></div><figcaption>Every change, before it reaches your main branch.</figcaption></figure>
+          <figure class="shot"><img class="shotimg" src="assets/shot-diff.webp" width="1440" height="900" loading="lazy" decoding="async" alt="The diff tab showing the change Claude Code made"><figcaption>Every change, before it reaches your main branch.</figcaption></figure>
         </li>
       </ol>
     </div>
@@ -489,6 +486,7 @@ const frames = "⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏";
 const script = b => scripts[b.name] || b.script;
 
 function renderList() {
+  $("#count").textContent = booths.length + " open";
   list.innerHTML = booths.map((b, i) => {
     const s = script(b), d = b.state === "ready" ? `<span class="df">+${s.diff.add},<b>-${s.diff.del}</b></span>` : "";
     return `<button class="booth" role="option" aria-selected="${i === sel}" data-i="${i}"><span class="n">${i + 1}.</span><span class="t">${b.name}</span><span class="st ${b.state === "busy" ? "busy" : ""}">${b.state === "busy" ? frames[spin % 10] : "●"}</span><span class="br">⎇ booths/${b.name}</span>${d}</button>`;

@@ -1,5 +1,5 @@
 # Regenerate docs/assets/demo.gif and the website screenshots:
-#   DEMO_CLAUDE=~/.local/bin/claude-trusted vhs docs/demo/demo.tape
+#   vhs docs/demo/demo.tape
 # Needs vhs, ttyd, ffmpeg, go, tmux and a logged-in Claude Code. Real Claude Code answers, so
 # long waits are cut with Hide/Show; everything on screen is what the app really showed.
 Output docs/assets/demo.gif
