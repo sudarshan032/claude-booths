@@ -5,6 +5,8 @@ versions: [SemVer](https://semver.org/). Forked from claude-squad v1.0.20.
 
 ## Unreleased
 
+## v1.1.0 – 2026-10-17
+
 ### Added
 - Pixel "BOOTHS" banner on the welcome screen (thin, widely spaced capitals; the two O's are
   booths, one lit), with a half-block version for smaller panes, and a one-line `❯ B[ ][▮]THS`
