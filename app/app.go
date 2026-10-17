@@ -145,7 +145,7 @@ func newHome(ctx context.Context, program string, autoYes bool) *home {
 	if err := theme.Set(appConfig.Theme); err != nil {
 		log.WarningLog.Printf("%v; using %s", err, theme.DefaultName)
 	}
-	tmux.StatusStyle = tmuxStatusStyle(theme.Current())
+	tmux.StatusStyle, tmux.StatusLamp = tmuxStatusStyle(theme.Current())
 
 	// Load application state
 	appState := config.LoadState()
@@ -1043,9 +1043,9 @@ func (m *home) cycleTheme() tea.Cmd {
 	if err := theme.Set(next); err != nil {
 		return m.handleError(err)
 	}
-	tmux.StatusStyle = tmuxStatusStyle(theme.Current())
+	tmux.StatusStyle, tmux.StatusLamp = tmuxStatusStyle(theme.Current())
 	for _, inst := range m.list.GetInstances() {
-		inst.ApplyStatusStyle()
+		inst.ApplyStatusBar()
 	}
 	m.appConfig.Theme = next
 	if err := config.SaveConfig(m.appConfig); err != nil {
@@ -1061,14 +1061,16 @@ func (m *home) cycleTheme() tea.Cmd {
 	}
 }
 
-// tmuxStatusStyle renders a palette as a tmux status-style; "" if its colors have no hex form.
-func tmuxStatusStyle(p theme.Palette) string {
+// tmuxStatusStyle renders a palette as a tmux status-style and lamp color; "" for either
+// whose colors have no hex form.
+func tmuxStatusStyle(p theme.Palette) (style, lamp string) {
 	bg, ok1 := theme.Hex(p.Accent)
 	fg, ok2 := theme.Hex(p.OnAccent)
-	if !ok1 || !ok2 {
-		return ""
+	if ok1 && ok2 {
+		style = "bg=" + bg + ",fg=" + fg
 	}
-	return "bg=" + bg + ",fg=" + fg
+	lamp, _ = theme.Hex(p.Warning)
+	return style, lamp
 }
 
 // handleError handles all errors which get bubbled up to the app. sets the error message. We return a callback tea.Cmd that returns a hideErrMsg message

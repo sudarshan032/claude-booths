@@ -32,6 +32,9 @@ versions: [SemVer](https://semver.org/). Forked from claude-squad v1.0.20.
   (two idle sessions: 124 tmux processes per 10 s → 0).
 
 ### Fixed
+- The booth status bar (logo, booth name, branch, "Ctrl+Q to go back") is now set on each
+  booth's tmux session by the app, so it no longer needs lines in `~/.tmux.conf` that also
+  showed up in every plain `tmux` session.
 - New booths got stuck on the agent's folder-trust screen, and a Shift+N prompt's Enter picked
   Claude Code's preselected "No, exit", so the booth died. Known trust and first-run screens
   (Claude Code, Gemini CLI, Codex trust; Aider's first-run questions) are now answered first.
