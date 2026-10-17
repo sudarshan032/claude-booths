@@ -7,27 +7,30 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-// The pixel wordmark: "booths" in a 7-row bitmap where the two o's are booths, the
+// The pixel wordmark: "BOOTHS" in thin 7-row capitals where the two O's are booths, the
 // second one lit. Pixel values: 1 letter, 2 booth outline, 3 lit booth, 4 window in the
 // lit booth (left blank so the terminal background shows through), 0 empty.
 var pixelGlyphs = []string{
-	"1000/1000/1110/1001/1001/1001/1110",        // b
-	"00000/00000/02220/20002/20002/20002/22222", // o, empty booth
-	"00000/00000/03330/33333/33433/33333/33333", // O, lit booth
-	"0100/0100/1111/0100/0100/0100/0011",        // t
-	"1000/1000/1110/1001/1001/1001/1001",        // h
-	"0000/0000/0111/1000/0110/0001/1110",        // s
+	"11110/10001/10001/11110/10001/10001/11110", // B
+	"02220/20002/20002/20002/20002/20002/22222", // O, empty booth
+	"03330/33333/33433/33333/33333/33333/33333", // O, lit booth
+	"11111/00100/00100/00100/00100/00100/00100", // T
+	"10001/10001/10001/11111/10001/10001/10001", // H
+	"01111/10000/10000/01110/00001/00001/11110", // S
 }
 
 const pixelRows = 7
 
-// pixelGrid lays the glyphs side by side with one empty column between them.
+// pixelGap is the empty columns between glyphs: wide, like signage over a door.
+const pixelGap = "00"
+
+// pixelGrid lays the glyphs side by side, pixelGap apart.
 var pixelGrid = func() [][]byte {
 	grid := make([][]byte, pixelRows)
 	for gi, g := range pixelGlyphs {
 		for y, row := range strings.Split(g, "/") {
 			if gi > 0 {
-				grid[y] = append(grid[y], '0')
+				grid[y] = append(grid[y], pixelGap...)
 			}
 			grid[y] = append(grid[y], row...)
 		}
@@ -112,7 +115,7 @@ func renderPixelBanner(large bool) string {
 }
 
 // promptLogoText is the plain form of PromptLogo, for width checks.
-const promptLogoText = "❯ claude/b[ ][▮]ths"
+const promptLogoText = "❯ claude/B[ ][▮]THS"
 
 // PromptLogo is the one-line logo for small places: the list title, help, narrow panes.
 // Pass withClaude=false to drop the "claude/" part where space is tight.
@@ -121,6 +124,6 @@ func PromptLogo(withClaude bool) string {
 	if withClaude {
 		s += promptDimStyle.Render("claude/")
 	}
-	return s + promptWordStyle.Render("b") + promptBoothStyle.Render("[ ][") + promptLampStyle.Render("▮") +
-		promptBoothStyle.Render("]") + promptWordStyle.Render("ths")
+	return s + promptWordStyle.Render("B") + promptBoothStyle.Render("[ ][") + promptLampStyle.Render("▮") +
+		promptBoothStyle.Render("]") + promptWordStyle.Render("THS")
 }
