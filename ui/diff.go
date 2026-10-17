@@ -107,12 +107,12 @@ func (d *DiffPane) String() string {
 
 // ScrollUp scrolls the viewport up
 func (d *DiffPane) ScrollUp() {
-	d.viewport.LineUp(1)
+	d.viewport.ScrollUp(1)
 }
 
 // ScrollDown scrolls the viewport down
 func (d *DiffPane) ScrollDown() {
-	d.viewport.LineDown(1)
+	d.viewport.ScrollDown(1)
 }
 
 func colorizeDiff(diff string) string {

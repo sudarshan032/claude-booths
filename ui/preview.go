@@ -207,7 +207,7 @@ func (p *PreviewPane) ScrollUp(instance *session.Instance) error {
 			return err
 		}
 	}
-	p.viewport.LineUp(scrollStep)
+	p.viewport.ScrollUp(scrollStep)
 	return nil
 }
 
@@ -219,7 +219,7 @@ func (p *PreviewPane) ScrollDown(instance *session.Instance) error {
 	if p.viewport.AtBottom() {
 		return p.ResetToNormalMode(instance)
 	}
-	p.viewport.LineDown(scrollStep)
+	p.viewport.ScrollDown(scrollStep)
 	return nil
 }
 
