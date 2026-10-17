@@ -105,18 +105,41 @@ type TmuxSession struct {
 
 const TmuxPrefix = "claudebooths_"
 
-// StatusStyle is applied as each session's tmux status-style (the bar shown while attached,
-// if status is on). Set by the app from the active theme; "" leaves tmux's own setting.
-var StatusStyle string
+// StatusStyle is applied as each session's tmux status-style (the bar shown while attached).
+// Set by the app from the active theme; "" leaves tmux's own colors. StatusLamp colors the
+// lit booth in the bar's logo; "" uses the bar's text color.
+var StatusStyle, StatusLamp string
 
-// ApplyStatusStyle sets StatusStyle on this session.
-func (t *TmuxSession) ApplyStatusStyle() {
-	if StatusStyle == "" {
-		return
+// ApplyStatusBar gives this session the booth bar (logo, booth name, branch, how to get
+// back). Every option is set on the session only, so the user's own tmux sessions and
+// ~/.tmux.conf are left alone.
+func (t *TmuxSession) ApplyStatusBar() {
+	lamp := "default"
+	if StatusLamp != "" {
+		lamp = StatusLamp
 	}
-	cmd := exec.Command("tmux", "set-option", "-t", t.sanitizedName, "status-style", StatusStyle)
-	if err := t.cmdExec.Run(cmd); err != nil {
-		log.InfoLog.Printf("could not set status-style for %s: %v", t.sanitizedName, err)
+	left := " #[fg=" + lamp + ",bold]❯#[fg=default] B[ ][#[fg=" + lamp + "]▮#[fg=default]]THS#[nobold] · " +
+		"#{s/" + TmuxPrefix + "//:session_name} · ⎇ #(git -C '#{pane_current_path}' branch --show-current) "
+	opts := [][2]string{
+		{"status", "on"},
+		{"status-left", left},
+		{"status-left-length", "150"},
+		{"status-right", " Ctrl+Q to go back "},
+		{"window-status-format", ""},
+		{"window-status-current-format", ""},
+	}
+	if StatusStyle != "" {
+		opts = append(opts, [2]string{"status-style", StatusStyle})
+	}
+	var args []string
+	for i, o := range opts {
+		if i > 0 {
+			args = append(args, ";")
+		}
+		args = append(args, "set-option", "-t", t.sanitizedName, o[0], o[1])
+	}
+	if err := t.cmdExec.Run(exec.Command("tmux", args...)); err != nil {
+		log.InfoLog.Printf("could not set the status bar for %s: %v", t.sanitizedName, err)
 	}
 }
 
@@ -206,7 +229,7 @@ func (t *TmuxSession) Start(workDir string) error {
 		log.InfoLog.Printf("Warning: failed to enable mouse scrolling for session %s: %v", t.sanitizedName, err)
 	}
 
-	t.ApplyStatusStyle()
+	t.ApplyStatusBar()
 
 	err = t.Restore()
 	if err != nil {

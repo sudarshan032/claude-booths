@@ -264,7 +264,7 @@ func (i *Instance) Start(firstTimeSetup bool) error {
 			setupErr = fmt.Errorf("failed to restore existing session: %w", err)
 			return setupErr
 		}
-		tmuxSession.ApplyStatusStyle() // the theme may have changed since it was created
+		tmuxSession.ApplyStatusBar() // the theme may have changed since it was created
 	} else {
 		// Setup git worktree first
 		if err := i.gitWorktree.Setup(); err != nil {
@@ -378,10 +378,10 @@ func (i *Instance) Attach() (chan struct{}, error) {
 	return i.tmuxSession.Attach()
 }
 
-// ApplyStatusStyle re-applies the theme's tmux status bar style to a running session.
-func (i *Instance) ApplyStatusStyle() {
+// ApplyStatusBar re-applies the theme's tmux status bar to a running session.
+func (i *Instance) ApplyStatusBar() {
 	if i.started && i.Status != Paused && i.tmuxSession != nil {
-		i.tmuxSession.ApplyStatusStyle()
+		i.tmuxSession.ApplyStatusBar()
 	}
 }
 
