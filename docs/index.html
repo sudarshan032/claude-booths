@@ -9,7 +9,16 @@
 <meta property="og:title" content="Claude Booths">
 <meta property="og:description" content="Run Claude Code in parallel, one booth per task. Every booth has its own branch, worktree and tmux session.">
 <meta property="og:image" content="https://sudarshan032.github.io/claude-booths/assets/og.png">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://sudarshan032.github.io/claude-booths/">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Claude Booths: Claude Code, in parallel. A row of booths, one per task.">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Claude Booths">
+<meta name="twitter:description" content="Run Claude Code in parallel, one booth per task. Every booth has its own branch, worktree and tmux session.">
+<meta name="twitter:image" content="https://sudarshan032.github.io/claude-booths/assets/og.png">
+<link rel="canonical" href="https://sudarshan032.github.io/claude-booths/">
 <link rel="icon" href="assets/logo-tile.svg" type="image/svg+xml">
 <link rel="preload" href="assets/fonts/geist.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/geist-mono.woff2" as="font" type="font/woff2" crossorigin>
@@ -98,11 +107,12 @@ img, svg { display: block; max-width: 100%; }
 .titlebar i { width: 12px; height: 12px; border-radius: 50%; }
 .titlebar i:nth-child(1) { background: #FF5F57; } .titlebar i:nth-child(2) { background: #FEBC2E; } .titlebar i:nth-child(3) { background: #28C840; }
 .titlebar span { margin: 0 auto; transform: translateX(-26px); }
+@media (max-width: 500px) { .titlebar span { transform: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } }
 .app { --pri: var(--t-primary); --sec: var(--t-secondary); position: relative; display: grid; grid-template-columns: minmax(230px, 30%) 1fr; grid-template-rows: 1fr auto; gap: 0 16px; height: 580px; padding: 16px 18px 8px; font: 13px/1.6 var(--mono); outline: none; }
 .app:focus-visible { box-shadow: inset 0 0 0 2px var(--pri); border-radius: 0; }
 .list { min-width: 0; overflow: hidden; }
-.list h2 { margin: 2px 0 14px 4px; color: var(--t-text); font: 700 13px var(--mono); }
-.list h2 #count { margin-left: 10px; color: var(--t-dim); font-weight: 400; }
+.list .h2 { margin: 2px 0 14px 4px; color: var(--t-text); font: 700 13px var(--mono); }
+.list .h2 #count { margin-left: 10px; color: var(--t-dim); font-weight: 400; }
 .booth { display: grid; grid-template-columns: 22px 1fr auto; gap: 2px 6px; width: 100%; padding: 9px 10px; border: 0; border-radius: 6px; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; touch-action: manipulation; }
 .booth + .booth { margin-top: 6px; }
 .booth:hover { background: rgba(255,255,255,.05); }
@@ -129,7 +139,7 @@ img, svg { display: block; max-width: 100%; }
 .app.inside { grid-template-columns: 1fr; }
 .app.inside .list, .app.inside .tabs, .app.inside .menu { display: none; }
 .app.inside .view { border-top: 1px solid var(--t-line); border-radius: 8px; }
-.statusbar { display: none; margin: 0 -18px -8px; padding: 3px 18px; background: var(--pri); color: var(--t-bg); font-weight: 700; white-space: nowrap; overflow: hidden; }
+.statusbar { display: none; width: calc(100% + 36px); margin: 0 -18px -8px; padding: 3px 18px; border: 0; background: var(--pri); color: var(--t-bg); font: inherit; font-weight: 700; text-align: left; white-space: nowrap; overflow: hidden; cursor: pointer; }
 .app.inside .statusbar { display: block; }
 .dialog { position: absolute; inset: 0; display: grid; place-items: center; background: rgba(10,9,16,.6); }
 .dialog[hidden] { display: none; }
@@ -199,8 +209,8 @@ img, svg { display: block; max-width: 100%; }
 .keygroup dd { margin: 0; color: var(--text-2); font-size: 15.5px; line-height: 1.35; }
 
 /* install */
-.install { display: grid; grid-template-columns: 1.2fr 1fr; gap: 56px; margin-top: 44px; }
-@media (max-width: 860px) { .install { grid-template-columns: 1fr; } }
+.install { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 56px; margin-top: 44px; }
+@media (max-width: 860px) { .install { grid-template-columns: minmax(0, 1fr); } }
 .seg { display: inline-flex; padding: 4px; border-radius: var(--r-md); background: var(--surface-2); }
 .seg button { min-height: 38px; padding: 0 16px; border: 0; border-radius: var(--r-sm); background: none; color: var(--text-2); font: 650 15px var(--sans); cursor: pointer; }
 .seg button[aria-selected="true"] { background: var(--bg); color: var(--text); box-shadow: 0 1px 2px rgba(20,18,32,.1), 0 0 0 1px var(--border); }
@@ -218,6 +228,9 @@ img, svg { display: block; max-width: 100%; }
 footer { padding: 36px 0 52px; color: var(--text-2); font-size: 15px; }
 footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px 32px; }
 footer p { margin: 0; }
+footer .foot { display: flex; flex-wrap: wrap; gap: 6px 20px; width: 100%; }
+footer .foot a { color: var(--text-2); }
+.fine { margin: 12px 0 0; color: var(--text-2); font-size: 14px; }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
 </style>
 </head>
@@ -258,9 +271,9 @@ footer p { margin: 0; }
   <section class="stage wrap" aria-label="Interactive demo">
     <div class="window">
       <div class="titlebar"><i></i><i></i><i></i><span>claude-booths — ~/code/acme-shop</span></div>
-      <div class="app" id="app" tabindex="0" role="application" aria-label="Interactive Claude Booths demo. j and k move between booths, Tab switches views, Shift+N opens a booth, Enter steps inside, Control+Q steps out, t changes the theme.">
+      <div class="app" id="app" tabindex="0" role="application" aria-label="Interactive Claude Booths demo. j and k move between booths, Tab switches views, Shift+N opens a booth, Enter steps inside, Control+Q steps out, t changes the theme. Tab past the last view or press Escape to leave the demo.">
         <div class="list">
-          <h2><span class="sec">❯</span> B<span class="pri">[ ][</span><span class="sec">▮</span><span class="pri">]</span>THS<span id="count">3 open</span></h2>
+          <div class="h2"><span aria-hidden="true"><span class="sec">❯</span> B<span class="pri">[ ][</span><span class="sec">▮</span><span class="pri">]</span>THS</span><span id="count">3 open</span></div>
           <div id="booths" role="listbox" aria-label="Booths"></div>
         </div>
         <div class="pane">
@@ -272,7 +285,7 @@ footer p { margin: 0; }
           <div class="view" id="view"></div>
         </div>
         <div class="menu"><b>n</b> new  <b>D</b> kill <span class="sep">┊</span> <b>↵/o</b> open  <b>p</b> push branch  <b>c</b> checkout <span class="sep">┊</span> <b>tab</b> switch tab  <b>?</b> help <span class="sep">┊</span> <b>t</b> theme  <b>q</b> quit</div>
-        <div class="statusbar" id="statusbar"></div>
+        <button class="statusbar" id="statusbar" type="button" aria-label="Step out of the booth"></button>
         <div class="dialog" id="dialog" hidden>
           <form id="newform" autocomplete="off">
             <label for="f-name">Booth name</label><input id="f-name" maxlength="24" placeholder="dark-mode" required>
@@ -300,7 +313,7 @@ footer p { margin: 0; }
       <div class="anatomy">
         <div><svg aria-hidden="true"><use href="#i-branch"/></svg><h3>A branch of its own</h3><p>Each booth is a git worktree cut from your current commit. Nothing it writes reaches your main checkout until you push it or check it out.</p></div>
         <div><svg aria-hidden="true"><use href="#i-term"/></svg><h3>A session that keeps running</h3><p>Every booth runs in tmux. Quit the app or close the terminal and come back later: the session is exactly where you left it.</p></div>
-        <div><svg aria-hidden="true"><use href="#i-eye"/></svg><h3>Live output, no polling</h3><p>Previews stream from tmux the moment the screen changes. A booth that's waiting on you uses no CPU at all.</p></div>
+        <div><svg aria-hidden="true"><use href="#i-eye"/></svg><h3>Live output, no polling</h3><p>Previews stream from tmux the moment the screen changes. A booth that's waiting on you costs next to nothing.</p></div>
       </div>
 
       <ol class="steps">
@@ -341,11 +354,12 @@ footer p { margin: 0; }
           <div><dt><span class="k">n</span></dt><dd>Open a booth</dd></div>
           <div><dt><span class="k">N</span></dt><dd>Open a booth with a prompt</dd></div>
           <div><dt><span class="k">j</span><span class="k">k</span></dt><dd>Move between booths</dd></div>
+          <div><dt><span class="k">J</span><span class="k">K</span></dt><dd>Reorder booths</dd></div>
           <div><dt><span class="k">D</span></dt><dd>Delete a booth</dd></div>
         </dl></div>
-        <div class="keygroup"><h3>Inside a booth</h3><dl>
+        <div class="keygroup"><h3>Views</h3><dl>
           <div><dt><span class="k">↵</span></dt><dd>Step inside, full screen</dd></div>
-          <div><dt><span class="combo"><span class="k">ctrl</span><span class="k">q</span></span></dt><dd>Step back out</dd></div>
+          <div><dt><span class="combo"><span class="k">ctrl</span><span class="k">q</span></span></dt><dd>Step back out (the only key the app keeps while you're inside)</dd></div>
           <div><dt><span class="k">tab</span></dt><dd>Preview, diff or terminal</dd></div>
           <div><dt><span class="combo"><span class="k">shift</span><span class="k">↑↓</span></span></dt><dd>Scroll the history</dd></div>
         </dl></div>
@@ -377,9 +391,9 @@ curl -fsSL https://raw.githubusercontent.com/sudarshan032/claude-booths/main/ins
 
 <span class="c"># then, inside any git repository</span>
 claude-booths</pre>
-          <pre class="code" id="inst-source" hidden>git clone https://github.com/sudarshan032/claude-booths
-cd claude-booths
-go build -o ~/.local/bin/claude-booths .
+          <p class="fine">Latest: <a href="https://github.com/sudarshan032/claude-booths/releases/latest" id="latest">release notes</a> · <a href="https://github.com/sudarshan032/claude-booths/blob/main/install.sh">read the script</a> (it checks the download's SHA-256) · <a href="https://github.com/sudarshan032/claude-booths/blob/main/CHANGELOG.md">changelog</a></p>
+          <pre class="code" id="inst-source" hidden><span class="c"># needs Go 1.26+; installs to $(go env GOPATH)/bin</span>
+go install github.com/sudarshan032/claude-booths@latest
 
 <span class="c"># start a different agent</span>
 claude-booths -p codex</pre>
@@ -400,7 +414,7 @@ claude-booths -p codex</pre>
       <h2>Give every task its own booth.</h2>
       <div class="actions">
         <a class="btn btn-primary" href="#install">Install Claude Booths</a>
-        <a class="btn btn-ghost" href="https://github.com/sudarshan032/claude-booths"><svg aria-hidden="true"><use href="#i-gh"/></svg>Star on GitHub</a>
+        <a class="btn btn-ghost" href="https://github.com/sudarshan032/claude-booths"><svg aria-hidden="true"><use href="#i-gh"/></svg>View source on GitHub</a>
       </div>
     </div>
   </section>
@@ -410,6 +424,7 @@ claude-booths -p codex</pre>
   <div class="wrap">
     <p>Free software under the <a href="https://github.com/sudarshan032/claude-booths/blob/main/LICENSE.md">AGPL-3.0</a>. Built on <a href="https://github.com/smtg-ai/claude-squad">claude-squad</a> by smtg-ai.</p>
     <p>"Claude" is a trademark of Anthropic. Not affiliated with or endorsed by Anthropic.</p>
+    <nav class="foot" aria-label="Project"><a href="https://github.com/sudarshan032/claude-booths/releases">Releases</a><a href="https://github.com/sudarshan032/claude-booths/blob/main/CHANGELOG.md">Changelog</a><a href="https://github.com/sudarshan032/claude-booths/issues/new/choose">Report a bug</a><a href="https://github.com/sudarshan032/claude-booths/discussions">Discussions</a><a href="https://github.com/sudarshan032/claude-booths/blob/main/SECURITY.md">Security</a><a href="https://github.com/sudarshan032/claude-booths/blob/main/CONTRIBUTING.md">Contributing</a></nav>
   </div>
 </footer>
 
@@ -421,7 +436,7 @@ const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
 document.addEventListener("click", async e => {
   const b = e.target.closest(".copy"); if (!b) return;
   try { await navigator.clipboard.writeText($("#" + b.dataset.copy).textContent); b.textContent = "Copied"; b.dataset.done = ""; }
-  catch { b.textContent = "Press ⌘C"; getSelection().selectAllChildren($("#" + b.dataset.copy)); }
+  catch { b.textContent = /Mac/.test(navigator.platform) ? "Press ⌘C" : "Press Ctrl+C"; getSelection().selectAllChildren($("#" + b.dataset.copy)); }
   setTimeout(() => { b.textContent = "Copy"; delete b.dataset.done; }, 1600);
 });
 document.querySelectorAll("[data-inst]").forEach(b => b.addEventListener("click", () => {
@@ -432,19 +447,19 @@ document.querySelectorAll("[data-inst]").forEach(b => b.addEventListener("click"
 /* "yes" only after the full flow passed on that system */
 const compat = [
   ["Claude Code", "yes", "wip", "claude-booths"],
-  ["OpenCode", "wip", "wip", "claude-booths -p opencode"],
+  ["OpenCode", "yes", "wip", "claude-booths -p opencode"],
   ["Codex CLI", "wip", "wip", "claude-booths -p codex"],
   ["Gemini CLI", "wip", "wip", "claude-booths -p gemini"],
   ["Aider", "wip", "wip", "claude-booths -p aider"],
   ["Amp", "wip", "wip", "claude-booths -p amp"],
 ];
-const label = { yes: "Verified", wip: "Testing", no: "Not supported" };
+const label = { yes: "Verified", wip: "Not verified yet", no: "Not supported" };
 $("#compat tbody").innerHTML = compat.map(([a, m, l, cmd]) =>
   `<tr><th scope="row">${a}</th><td><span class="pill ${m}">${label[m]}</span></td><td><span class="pill ${l}">${label[l]}</span></td><td class="note"><code>${esc(cmd)}</code></td></tr>`).join("");
 
 /* ---------- interactive replica ---------- */
 const themes = [["#8B7CFF", "#F5A524"], ["#BD93F9", "#F1FA8C"], ["#88C0D0", "#EBCB8B"], ["#FE8019", "#FABD2F"], ["#2BB3A3", "#F7D774"], ["#3794FF", "#DCDCAA"]];
-const ccHead = name => `<div class="cc-head"><span class="cc-mark">✻</span><div><b>Claude Code</b> <span class="dim">v2.1 · Opus 5.5</span>\n<span class="dim">~/.claude-booths/worktrees/booths/${name}</span></div></div>`;
+const ccHead = name => `<div class="cc-head"><span class="cc-mark">✻</span><div><b>Claude Code</b> <span class="dim">v2.1 · Opus 5.5</span>\n<span class="dim">~/.claude-booths/worktrees/you/${name}</span></div></div>`;
 const inputBox = (txt = "") => `<span class="rule"></span><span class="pri">❯</span> ${txt}<span class="cursor"></span><span class="rule"></span><span class="foot"><span>  ? for shortcuts</span><span>◐ medium · /effort</span></span>`;
 
 // From real Claude Code runs inside booths (trimmed).
@@ -497,7 +512,7 @@ function diff(b) {
     s.diff.lines.map(([k, l]) => k === "+" ? `<span class="ok">+${esc(l)}</span>` : k === "-" ? `<span class="bad">-${esc(l)}</span>` : " " + esc(l)).join("\n");
 }
 function terminal(b) {
-  const p = `<span class="ok">~/.claude-booths/worktrees/booths/${b.name}</span> <span class="pri">(booths/${b.name})</span> $ `;
+  const p = `<span class="ok">~/.claude-booths/worktrees/you/${b.name}</span> <span class="pri">(you/${b.name})</span> $ `;
   return `${p}git status --short\n${b.state === "busy" ? "" : ` M ${S(b).diff.file}\n`}${p}<span class="cursor"></span>`;
 }
 function render() {
@@ -508,7 +523,7 @@ function render() {
   const b = booths[sel], vh = inside || tab === "preview" ? preview(b) : tab === "diff" ? diff(b) : terminal(b);
   if (vh !== lastView) { view.innerHTML = vh; lastView = vh; view.scrollTop = view.scrollHeight; }
   app.classList.toggle("inside", inside);
-  $("#statusbar").textContent = ` claude-booths · ${b.name} · ⎇ booths/${b.name} · ~/code/acme-shop        ctrl+q to step out`;
+  $("#statusbar").textContent = ` claude-booths · ${b.name} · ⎇ you/${b.name} · ~/code/acme-shop        ctrl+q (or tap here) to step out`;
 }
 function tick() {
   spin++;
@@ -530,7 +545,7 @@ function openDialog() { $("#dialog").hidden = false; $("#f-name").value = ""; $(
 function closeDialog() { $("#dialog").hidden = true; app.focus({ preventScroll: true }); }
 $("#newform").addEventListener("submit", e => {
   e.preventDefault();
-  const name = $("#f-name").value.trim().toLowerCase().replace(/[^a-z0-9-]+/g, "-").slice(0, 24) || "new-booth";
+  const name = $("#f-name").value.trim().toLowerCase().replace(/[^a-z0-9-]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 24) || "new-booth";
   const p = $("#f-prompt").value.trim() || "Tidy up the README";
   booths.push({ name, state: "busy", shown: 0, wait: 0, script: followUp(name, p) });
   sel = booths.length - 1; tab = "preview"; closeDialog(); render();
@@ -540,9 +555,15 @@ $("#dialog").addEventListener("keydown", e => { if (e.key === "Escape") { e.stop
 // pointerdown, not click: the list re-renders while booths stream, which can swallow a click.
 list.addEventListener("pointerdown", e => { const b = e.target.closest(".booth"); if (b) { sel = +b.dataset.i; inside = false; render(); app.focus({ preventScroll: true }); } });
 list.addEventListener("dblclick", e => { if (e.target.closest(".booth")) { inside = true; typed = ""; render(); } });
-document.querySelectorAll(".tab").forEach(t => t.addEventListener("pointerdown", () => { tab = t.dataset.tab; render(); }));
+document.querySelectorAll(".tab").forEach(t => t.addEventListener("click", () => { tab = t.dataset.tab; render(); }));
+$("#statusbar").addEventListener("click", () => { inside = false; typed = ""; render(); app.focus({ preventScroll: true }); });
 app.addEventListener("keydown", e => {
   if (!$("#dialog").hidden) return;
+  // Leave keyboard users a way out: Shift+Tab always moves focus, Tab does after the last view,
+  // Escape (outside a booth) leaves the demo, and buttons keep Enter/Space for themselves.
+  if (e.key === "Tab" && (e.shiftKey || (!inside && tab === "terminal"))) return;
+  if (!inside && e.key === "Escape") { app.blur(); return; }
+  if (!inside && e.target.closest("button") && (e.key === "Enter" || e.key === " ")) return;
   if (inside) {
     if ((e.ctrlKey && e.key.toLowerCase() === "q") || e.key === "Escape") { inside = false; typed = ""; }
     else if (e.key === "Backspace") typed = typed.slice(0, -1);
@@ -554,7 +575,7 @@ app.addEventListener("keydown", e => {
   const k = e.key, tabs = ["preview", "diff", "terminal"];
   if (k === "j" || k === "ArrowDown") sel = Math.min(booths.length - 1, sel + 1);
   else if (k === "k" || k === "ArrowUp") sel = Math.max(0, sel - 1);
-  else if (k === "Tab") tab = tabs[(tabs.indexOf(tab) + (e.shiftKey ? 2 : 1)) % 3];
+  else if (k === "Tab") tab = tabs[tabs.indexOf(tab) + 1];
   else if (k === "Enter" || k === "o") { inside = true; typed = ""; }
   else if (k === "N" || k === "n") { e.preventDefault(); openDialog(); return; }
   else if (k === "D" && booths.length > 1) { booths.splice(sel, 1); sel = Math.min(sel, booths.length - 1); }

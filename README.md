@@ -14,6 +14,7 @@
   <a href="https://github.com/sudarshan032/claude-booths/actions/workflows/ci.yml"><img src="https://github.com/sudarshan032/claude-booths/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <a href="https://github.com/sudarshan032/claude-booths/releases/latest"><img src="https://img.shields.io/github/v/release/sudarshan032/claude-booths?color=5B4BE0" alt="Release"></a>
   <a href="LICENSE.md"><img src="https://img.shields.io/badge/license-AGPL--3.0-5B4BE0" alt="AGPL-3.0"></a>
+  <a href="https://goreportcard.com/report/github.com/sudarshan032/claude-booths"><img src="https://goreportcard.com/badge/github.com/sudarshan032/claude-booths" alt="Go Report Card"></a>
   <img src="https://img.shields.io/badge/macOS%20%7C%20Linux-F5A524" alt="macOS | Linux">
 </p>
 
@@ -40,10 +41,13 @@ the branches that are ready.
 
 - **Isolated**: each booth is a worktree on its own branch. Nothing reaches your main checkout until you push or check it out.
 - **Persistent**: booths run in tmux, so they keep going when you quit the app or close the terminal.
-- **Live**: previews stream from tmux the moment the screen changes. Idle booths use no CPU (no polling).
+- **Live**: previews stream from tmux the moment the screen changes, with no polling.
 - **Reviewable**: a diff tab per booth, then `p` to push the branch for a PR or `c` to check it out.
 - **Your agent**: Claude Code by default; any terminal agent with `-p`. See [Agents](#agents) for what's verified.
 - **Eight themes**: press `t`.
+
+**Status:** early but used daily (v1.x). Claude Code and OpenCode on macOS are the verified paths;
+see [Agents](#agents). Tested with tmux 3.5+ and git 2.40+.
 
 ## Install
 
@@ -51,15 +55,21 @@ the branches that are ready.
 curl -fsSL https://raw.githubusercontent.com/sudarshan032/claude-booths/main/install.sh | bash
 ```
 
-This puts `claude-booths` in `~/.local/bin`. Prefer a shorter name?
+This puts `claude-booths` in `~/.local/bin` after checking the download against the release's
+`checksums.txt` ([read the script](install.sh)). Prefer a shorter name? Add `-s -- --name booths`.
 
-```bash
-curl -fsSL https://raw.githubusercontent.com/sudarshan032/claude-booths/main/install.sh | bash -s -- --name booths
-```
+Other ways:
 
-From source (Go version in `go.mod`): `go build -o ~/.local/bin/claude-booths .`
+- **Go 1.26+**: `go install github.com/sudarshan032/claude-booths@latest`
+- **Download**: pick your archive on the [releases page](https://github.com/sudarshan032/claude-booths/releases/latest)
+  and verify it: `shasum -a 256 -c checksums.txt --ignore-missing` and
+  `gh attestation verify <archive> -R sudarshan032/claude-booths`
+- **From source**: `git clone https://github.com/sudarshan032/claude-booths && cd claude-booths && go build -o ~/.local/bin/claude-booths .`
 
 **Needs** [tmux](https://github.com/tmux/tmux/wiki/Installing) and git, plus [gh](https://cli.github.com/) to push branches.
+
+**Uninstall**: `claude-booths reset` (deletes every booth: its tmux session and worktree), then delete
+`~/.local/bin/claude-booths` and `~/.claude-booths`.
 
 ## Usage
 
@@ -104,12 +114,12 @@ prompt, live preview, diff, step in and out, restore after restart, delete).
 
 | Agent | macOS | Linux | Start with |
 |---|---|---|---|
-| [Claude Code](https://github.com/anthropics/claude-code) | ✅ verified | 🧪 testing | `claude-booths` |
-| [Codex CLI](https://github.com/openai/codex) | 🧪 testing | 🧪 testing | `claude-booths -p codex` |
-| [Gemini CLI](https://github.com/google-gemini/gemini-cli) | 🧪 testing | 🧪 testing | `claude-booths -p gemini` |
-| [Aider](https://github.com/Aider-AI/aider) | 🧪 testing | 🧪 testing | `claude-booths -p aider` |
-| Amp | 🧪 testing | 🧪 testing | `claude-booths -p amp` |
-| [OpenCode](https://opencode.ai) | 🧪 testing | 🧪 testing | `claude-booths -p opencode` |
+| [Claude Code](https://github.com/anthropics/claude-code) | ✅ verified | not verified yet | `claude-booths` |
+| [Codex CLI](https://github.com/openai/codex) | not verified yet | not verified yet | `claude-booths -p codex` |
+| [Gemini CLI](https://github.com/google-gemini/gemini-cli) | not verified yet | not verified yet | `claude-booths -p gemini` |
+| [Aider](https://github.com/Aider-AI/aider) | not verified yet | not verified yet | `claude-booths -p aider` |
+| [Amp](https://ampcode.com) | not verified yet | not verified yet | `claude-booths -p amp` |
+| [OpenCode](https://opencode.ai) | ✅ verified | not verified yet | `claude-booths -p opencode` |
 
 Native Windows isn't supported (booths need tmux).
 
@@ -184,9 +194,15 @@ Booths start from your last commit. Commit first if a booth needs those changes.
 
 **Where are the worktrees?** `~/.claude-booths/worktrees/`. Deleting a booth (`D`) removes its worktree and branch.
 
+## Support and security
+
+Found a bug? [Open an issue](https://github.com/sudarshan032/claude-booths/issues/new/choose).
+Questions and ideas go in [Discussions](https://github.com/sudarshan032/claude-booths/discussions).
+Please report security problems privately, as described in [SECURITY.md](SECURITY.md).
+
 ## Contributing
 
-Bug reports and PRs are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) for the branch and commit
+Bug reports and PRs are welcome. Everyone follows the [Code of Conduct](CODE_OF_CONDUCT.md). Read [CONTRIBUTING.md](CONTRIBUTING.md) for the branch and commit
 conventions, tests and release steps. Brand assets and the design system live in [BRAND.md](BRAND.md).
 
 ## License
