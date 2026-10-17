@@ -68,4 +68,5 @@ golangci-lint run # v2.15.0, same as CI (config: .golangci.yml)
 1. Move `## [Unreleased]` entries in `CHANGELOG.md` under `## [X.Y.Z] – YYYY-MM-DD` and add its
    compare link at the bottom.
 2. Bump `version` in `main.go`, commit `chore(release): vX.Y.Z`.
-3. `git tag vX.Y.Z && git push origin main vX.Y.Z` — `release.yml` builds a draft release.
+3. `git tag vX.Y.Z && git push origin main vX.Y.Z` — `release.yml` publishes the release with
+   that CHANGELOG section as its notes, `checksums.txt` and a build provenance attestation.
