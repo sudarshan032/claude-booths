@@ -3,29 +3,20 @@
 set -e
 
 setup_shell_and_path() {
-    BIN_DIR=${BIN_DIR:-$HOME/.local/bin}
-
-    case $SHELL in
-        */zsh)
-            PROFILE=$HOME/.zshrc
-            ;;
-        */bash)
-            PROFILE=$HOME/.bashrc
-            ;;
-        */fish)
-            PROFILE=$HOME/.config/fish/config.fish
-            ;;
-        */ash)
-            PROFILE=$HOME/.profile
-            ;;
-        *)
-            echo "could not detect shell, manually add ${BIN_DIR} to your PATH."
-            exit 1
-    esac
-
-    if [[ ":$PATH:" != *":${BIN_DIR}:"* ]]; then
-        echo >> "$PROFILE" && echo "export PATH=\"\$PATH:$BIN_DIR\"" >> "$PROFILE"
+    if [[ ":$PATH:" == *":${BIN_DIR}:"* ]]; then
+        return
     fi
+    case $SHELL in
+        */zsh) PROFILE=$HOME/.zshrc ;;
+        */bash) PROFILE=$HOME/.bashrc ;;
+        */fish) PROFILE=$HOME/.config/fish/config.fish ;;
+        */ash) PROFILE=$HOME/.profile ;;
+        *)
+            echo "Add ${BIN_DIR} to your PATH to run $INSTALL_NAME."
+            return
+    esac
+    echo >> "$PROFILE" && echo "export PATH=\"\$PATH:$BIN_DIR\"" >> "$PROFILE"
+    echo "Added ${BIN_DIR} to PATH in $PROFILE (open a new terminal to use it)."
 }
 
 detect_platform_and_arch() {
@@ -58,26 +49,38 @@ detect_platform_and_arch() {
 }
 
 get_latest_version() {
-    # Get latest version from GitHub API, including prereleases
-    API_RESPONSE=$(curl -sS "https://api.github.com/repos/sudarshan032/claude-booths/releases")
-    if [ $? -ne 0 ]; then
-        echo "Failed to connect to GitHub API"
+    # Errors go to stderr: stdout is captured as the version.
+    local tag
+    tag=$(curl -fsSL "https://api.github.com/repos/sudarshan032/claude-booths/releases/latest" 2>/dev/null |
+        grep -m1 '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/' | sed 's/^v//')
+    if [ -z "$tag" ]; then
+        echo "Could not find a published release at https://github.com/sudarshan032/claude-booths/releases" >&2
         exit 1
     fi
-    
-    if echo "$API_RESPONSE" | grep -q "Not Found"; then
-        echo "No releases found in the repository"
+    echo "$tag"
+}
+
+verify_checksum() {
+    local tmp_dir=$1
+    local archive_name=$2
+    if ! curl -fsSL "${RELEASE_URL}/checksums.txt" -o "${tmp_dir}/checksums.txt"; then
+        echo "Error: could not download checksums.txt for v${VERSION}" >&2
+        rm -rf "$tmp_dir"
         exit 1
     fi
-    
-    # Get the first release (latest) from the array
-    LATEST_VERSION=$(echo "$API_RESPONSE" | grep -m1 '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/' | sed 's/^v//')
-    if [ -z "$LATEST_VERSION" ]; then
-        echo "Failed to parse version from GitHub API response:"
-        echo "$API_RESPONSE" | grep -v "upload_url" # Filter out long upload_url line
+    local expected actual
+    expected=$(grep " ${archive_name}\$" "${tmp_dir}/checksums.txt" | cut -d' ' -f1)
+    if command -v sha256sum &> /dev/null; then
+        actual=$(sha256sum "${tmp_dir}/${archive_name}" | cut -d' ' -f1)
+    else
+        actual=$(shasum -a 256 "${tmp_dir}/${archive_name}" | cut -d' ' -f1)
+    fi
+    if [ -z "$expected" ] || [ "$expected" != "$actual" ]; then
+        echo "Error: checksum mismatch for ${archive_name}; not installing." >&2
+        rm -rf "$tmp_dir"
         exit 1
     fi
-    echo "$LATEST_VERSION"
+    echo "Checksum OK"
 }
 
 download_release() {
@@ -99,12 +102,6 @@ download_release() {
         echo ""
         echo "Expected asset name: ${archive_name}"
         echo "URL attempted: ${binary_url}"
-        if [ "$version" == "latest" ]; then
-            echo ""
-            echo "Tip: Try installing a specific version instead of 'latest'"
-            echo "Available versions:"
-            echo "$API_RESPONSE" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/' | sed 's/^v//'
-        fi
         rm -rf "$tmp_dir"
         exit 1
     fi
@@ -214,54 +211,11 @@ check_and_install_dependencies() {
         echo "tmux is already installed."
     fi
     
-    # Check for GitHub CLI (gh)
+    # GitHub CLI is optional: only the 'p' (push branch) key uses it.
     if ! command -v gh &> /dev/null; then
-        echo "GitHub CLI (gh) is not installed. Installing GitHub CLI..."
-        
-        if [[ "$PLATFORM" == "darwin" ]]; then
-            # macOS
-            if command -v brew &> /dev/null; then
-                ensure brew install gh
-            else
-                echo "Homebrew is not installed. Please install Homebrew first to install GitHub CLI."
-                echo "Visit https://brew.sh for installation instructions."
-                exit 1
-            fi
-        elif [[ "$PLATFORM" == "linux" ]]; then
-            # Linux
-            if command -v apt-get &> /dev/null; then
-                echo "Installing GitHub CLI on Debian/Ubuntu..."
-                ensure curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
-                ensure sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg
-                ensure echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
-                ensure sudo apt-get update
-                ensure sudo apt-get install -y gh
-            elif command -v dnf &> /dev/null; then
-                ensure sudo dnf install -y 'dnf-command(config-manager)'
-                ensure sudo dnf config-manager --add-repo https://cli.github.com/packages/rpm/gh-cli.repo
-                ensure sudo dnf install -y gh
-            elif command -v yum &> /dev/null; then
-                ensure sudo yum install -y yum-utils
-                ensure sudo yum-config-manager --add-repo https://cli.github.com/packages/rpm/gh-cli.repo
-                ensure sudo yum install -y gh
-            elif command -v pacman &> /dev/null; then
-                ensure sudo pacman -S --noconfirm github-cli
-            else
-                echo "Could not determine package manager. Please install GitHub CLI manually."
-                echo "Visit https://github.com/cli/cli#installation for installation instructions."
-                exit 1
-            fi
-        elif [[ "$PLATFORM" == "windows" ]]; then
-            echo "For Windows, please install GitHub CLI manually."
-            echo "Visit https://github.com/cli/cli#installation for installation instructions."
-            exit 1
-        fi
-        
-        echo "GitHub CLI (gh) installed successfully."
-    else
-        echo "GitHub CLI (gh) is already installed."
+        echo "Optional: install the GitHub CLI (gh) to push booth branches with 'p': https://cli.github.com"
     fi
-    
+
     echo "All dependencies are installed."
 }
 
@@ -288,12 +242,11 @@ main() {
     detect_platform_and_arch
     
     check_and_install_dependencies
-    
-    setup_shell_and_path
 
+    BIN_DIR=${BIN_DIR:-$HOME/.local/bin}
     VERSION=${VERSION:-"latest"}
     if [[ "$VERSION" == "latest" ]]; then
-        VERSION=$(get_latest_version)
+        VERSION=$(get_latest_version) || exit 1
     fi
 
     RELEASE_URL="https://github.com/sudarshan032/claude-booths/releases/download/v${VERSION}"
@@ -302,7 +255,9 @@ main() {
     TMP_DIR=$(mktemp -d)
     
     download_release "$VERSION" "$BINARY_URL" "$ARCHIVE_NAME" "$TMP_DIR"
+    verify_checksum "$TMP_DIR" "$ARCHIVE_NAME"
     extract_and_install "$TMP_DIR" "$ARCHIVE_NAME" "$BIN_DIR" "$EXTENSION"
+    setup_shell_and_path
 }
 
 # Run a command that should never fail. If the command fails execution
