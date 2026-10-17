@@ -13,13 +13,13 @@ go mod download
 go build -o ~/.local/bin/claude-booths .
 ```
 
-Requires Go (version pinned by the `toolchain` line in `go.mod`), `tmux` and `git`.
+Requires Go (version set by the `go` line in `go.mod`), `tmux` and `git`.
 
 ## Sources of truth
 
 | What | Where |
 |---|---|
-| Go version | `toolchain` line in `go.mod` (CI and release read it from there) |
+| Go version | `go` line in `go.mod` (CI and release read it from there) |
 | App version | `version` in `main.go`; release tags must match (`release.yml` checks) |
 | User-facing changes | `CHANGELOG.md` (`## Unreleased` until a release is cut) |
 | Config/state location | `config.GetConfigDir()` → `~/.claude-booths` |
@@ -60,7 +60,7 @@ Body explains why (what broke, for whom), not what the diff says.
 gofmt -l .        # must print nothing
 go vet ./...
 go test -race -count=1 ./...
-golangci-lint run # v2.5.0, same as CI (config: .golangci.yml)
+golangci-lint run # v2.15.0, same as CI (config: .golangci.yml)
 ```
 
 ## Releases

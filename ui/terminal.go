@@ -329,7 +329,7 @@ func (t *TerminalPane) ScrollUp() error {
 	if !t.isScrolling {
 		return t.enterScrollMode()
 	}
-	t.viewport.LineUp(1)
+	t.viewport.ScrollUp(1)
 	return nil
 }
 
@@ -340,7 +340,7 @@ func (t *TerminalPane) ScrollDown() error {
 	if !t.isScrolling {
 		return t.enterScrollMode()
 	}
-	t.viewport.LineDown(1)
+	t.viewport.ScrollDown(1)
 	return nil
 }
 
