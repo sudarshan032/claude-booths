@@ -1,9 +1,9 @@
 package git
 
 import (
-	"claude-booths/config"
-	"claude-booths/log"
 	"fmt"
+	"github.com/sudarshan032/claude-booths/config"
+	"github.com/sudarshan032/claude-booths/log"
 	"path/filepath"
 	"time"
 )

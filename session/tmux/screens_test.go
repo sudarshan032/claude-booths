@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"claude-booths/cmd/cmd_test"
+	"github.com/sudarshan032/claude-booths/cmd/cmd_test"
 
 	"github.com/stretchr/testify/require"
 )

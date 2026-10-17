@@ -1,4 +1,4 @@
-version: 2.9
+version: 2
 
 builds:
   - binary: claude-booths
@@ -11,19 +11,20 @@ builds:
       - arm64
     env:
       - CGO_ENABLED=0
+    flags: [-trimpath]
+    ldflags: [-s -w]
+    mod_timestamp: "{{ .CommitTimestamp }}"
 
 archives:
-  - format: tar.gz
+  - formats: [tar.gz]
     name_template: >-
       {{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}
     format_overrides:
       - goos: windows
-        format: zip
+        formats: [zip]
 
 release:
   prerelease: auto
-  draft: true
-  replace_existing_draft: true
 
 checksum:
   name_template: 'checksums.txt'

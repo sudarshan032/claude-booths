@@ -1,8 +1,8 @@
 package config
 
 import (
-	"claude-booths/internal/testutil"
-	"claude-booths/log"
+	"github.com/sudarshan032/claude-booths/internal/testutil"
+	"github.com/sudarshan032/claude-booths/log"
 	"os"
 	"path/filepath"
 	"regexp"

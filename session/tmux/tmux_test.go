@@ -1,8 +1,8 @@
 package tmux
 
 import (
-	cmd2 "claude-booths/cmd"
 	"fmt"
+	cmd2 "github.com/sudarshan032/claude-booths/cmd"
 	"math/rand"
 	"os"
 	"os/exec"
@@ -11,7 +11,7 @@ import (
 	"testing"
 	"time"
 
-	"claude-booths/cmd/cmd_test"
+	"github.com/sudarshan032/claude-booths/cmd/cmd_test"
 
 	"github.com/stretchr/testify/require"
 )

@@ -3,7 +3,7 @@
 package tmux
 
 import (
-	"claude-booths/log"
+	"github.com/sudarshan032/claude-booths/log"
 	"os"
 	"os/signal"
 	"syscall"

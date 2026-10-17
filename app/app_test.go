@@ -1,14 +1,14 @@
 package app
 
 import (
-	"claude-booths/config"
-	"claude-booths/internal/testutil"
-	"claude-booths/log"
-	"claude-booths/session"
-	"claude-booths/ui"
-	"claude-booths/ui/overlay"
 	"context"
 	"fmt"
+	"github.com/sudarshan032/claude-booths/config"
+	"github.com/sudarshan032/claude-booths/internal/testutil"
+	"github.com/sudarshan032/claude-booths/log"
+	"github.com/sudarshan032/claude-booths/session"
+	"github.com/sudarshan032/claude-booths/ui"
+	"github.com/sudarshan032/claude-booths/ui/overlay"
 	"os"
 	"testing"
 
