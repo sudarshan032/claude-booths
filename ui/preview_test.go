@@ -13,6 +13,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/charmbracelet/lipgloss"
 	"github.com/stretchr/testify/require"
 )
 
@@ -396,6 +397,17 @@ func TestPreviewShowsLastRowOfFullPane(t *testing.T) {
 	if !strings.Contains(out, "status") || strings.Contains(out, "...") {
 		t.Fatalf("last row lost:\n%q", out)
 	}
+}
+
+func TestPreviewWrapsJoinedLinesInsideThePane(t *testing.T) {
+	// capture-pane -J joins wrapped rows; rendering them unwrapped overflowed the pane and
+	// pushed the header and booth list off the screen.
+	p := NewPreviewPane()
+	p.SetSize(40, 5)
+	p.previewState = previewState{text: strings.Repeat("x", 200) + "\n$ \n"}
+	out := p.String()
+	require.Equal(t, 5, lipgloss.Height(out), "preview must stay %d rows:\n%s", 5, out)
+	require.Contains(t, out, "$")
 }
 
 // Scroll mode: the first step already moves up (not just "enter mode"), a header says how

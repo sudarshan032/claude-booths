@@ -6,6 +6,17 @@ upstream claude-squad releases.
 
 ## [Unreleased]
 
+### Fixed
+- A Shift+N prompt could be typed before the agent drew anything (Gemini CLI, Aider, a slow
+  OpenCode) and was silently lost. claude-booths now waits up to a minute for the agent's
+  screen and says so if nothing appears.
+- Sign-in and first-run screens (Claude Code theme/login, Codex and Gemini sign-in, Amp's
+  `[(y)es, (n)o]` question) got the prompt typed into them; the prompt is now held back with
+  "log in first" in the error.
+- Long output lines (joined by `capture-pane -J`) overflowed the preview and pushed the header
+  and booth list off the screen; they're wrapped to the pane width.
+- The help screen showed j and k the wrong way round.
+
 ## [1.1.0] – 2026-10-17
 
 ### Added

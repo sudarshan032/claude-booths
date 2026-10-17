@@ -654,12 +654,8 @@ func (i *Instance) SendPrompt(prompt string) error {
 	// Wait for the program to finish booting (startup hooks etc.), answering trust and
 	// first-run screens on the way. Typing into one of those would pick its selected option
 	// (Claude Code's trust menu starts on "No, exit") instead of delivering the prompt.
-	if err := i.tmuxSession.HandleStartupScreens(20 * time.Second); err != nil {
-		var se *tmux.SetupScreenError
-		if errors.As(err, &se) {
-			return fmt.Errorf("%w; the prompt was not sent", err)
-		}
-		return err
+	if err := i.tmuxSession.HandleStartupScreens(60 * time.Second); err != nil {
+		return fmt.Errorf("%w; the prompt was not sent", err)
 	}
 
 	if err := i.tmuxSession.SendKeys(prompt); err != nil {

@@ -92,6 +92,8 @@ func TestMatchScreen(t *testing.T) {
 		{name: "aider gitignore", content: aiderGitignore, agent: "Aider", keys: "n\r"},
 		{name: "aider docs", content: aiderDocs, agent: "Aider", keys: "d\r"},
 		{name: "unknown y/n question", content: "Something new? (Y)es/(N)o [Yes]: ", agent: "The agent", blocked: true},
+		{name: "amp lowercase y/n question", content: "No API key found. Would you like to log in? [(y)es, (n)o]: ", agent: "The agent", blocked: true},
+		{name: "gemini sign-in", content: " │ How would you like to authenticate for this project? │\n │ ● 1. Sign in with Google │\n", agent: "Gemini CLI", blocked: true},
 		{name: "claude input box", content: claudeInput, wantNoScreen: true},
 		{name: "claude permission prompt is not a startup screen", content: claudePermission, wantNoScreen: true},
 		{name: "answered aider question in scrollback", content: aiderAnswered, wantNoScreen: true},
@@ -219,4 +221,26 @@ func TestAutoYesAnswersEachPromptOnce(t *testing.T) {
 	require.NoError(t, s.TapEnter())
 	_, hasPrompt = s.HasUpdated()
 	require.False(t, hasPrompt, "same screen after Enter: already answered")
+}
+
+func TestHandleStartupScreensWaitsForTheAgentToDraw(t *testing.T) {
+	// Before: a blank pane counted as settled, so the prompt was typed before the agent started
+	// and lost (Gemini, Aider, slow OpenCode).
+	captures := 0
+	s, written := screenSession(t, "gemini", func(string) string {
+		captures++
+		if captures < 10 {
+			return "\n\n"
+		}
+		return claudeInput
+	})
+	require.NoError(t, s.HandleStartupScreens(2*time.Second))
+	require.GreaterOrEqual(t, captures, 10, "returned while the pane was still blank")
+	require.Empty(t, written())
+}
+
+func TestHandleStartupScreensBlankPaneIsAnError(t *testing.T) {
+	s, written := screenSession(t, "gemini", func(string) string { return "" })
+	require.Error(t, s.HandleStartupScreens(100*time.Millisecond))
+	require.Empty(t, written())
 }
