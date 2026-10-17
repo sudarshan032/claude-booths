@@ -23,7 +23,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
-          go-version-file: go.mod # toolchain line is the single source of the Go version
+          go-version-file: go.mod # the go line is the single source of the Go version
       - name: Install tmux
         run: sudo apt-get update -qq && sudo apt-get install -y -qq tmux
       - name: Test (race detector)
@@ -60,7 +60,7 @@ jobs:
         run: go vet ./...
       - uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9.3.0
         with:
-          version: v2.5.0 # v1.x can't load code targeting go1.25; config in .golangci.yml
+          version: v2.15.0 # must be built with a Go >= the go line; config in .golangci.yml
           args: --timeout=3m
 
   build:
