@@ -1,9 +1,9 @@
 package git
 
 import (
-	"claude-booths/log"
 	"context"
 	"fmt"
+	"github.com/sudarshan032/claude-booths/log"
 	"os"
 	"os/exec"
 	"path/filepath"

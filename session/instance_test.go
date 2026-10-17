@@ -1,11 +1,11 @@
 package session
 
 import (
-	"claude-booths/cmd/cmd_test"
-	"claude-booths/internal/testutil"
-	"claude-booths/log"
-	"claude-booths/session/tmux"
 	"fmt"
+	"github.com/sudarshan032/claude-booths/cmd/cmd_test"
+	"github.com/sudarshan032/claude-booths/internal/testutil"
+	"github.com/sudarshan032/claude-booths/log"
+	"github.com/sudarshan032/claude-booths/session/tmux"
 	"os"
 	"os/exec"
 	"path/filepath"

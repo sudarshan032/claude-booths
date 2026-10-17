@@ -1,10 +1,10 @@
 package daemon
 
 import (
-	"claude-booths/config"
-	"claude-booths/log"
-	"claude-booths/session"
 	"fmt"
+	"github.com/sudarshan032/claude-booths/config"
+	"github.com/sudarshan032/claude-booths/log"
+	"github.com/sudarshan032/claude-booths/session"
 	"os"
 	"os/exec"
 	"os/signal"

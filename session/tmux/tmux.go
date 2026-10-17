@@ -2,12 +2,12 @@ package tmux
 
 import (
 	"bytes"
-	"claude-booths/cmd"
-	"claude-booths/log"
 	"context"
 	"crypto/sha256"
 	"errors"
 	"fmt"
+	"github.com/sudarshan032/claude-booths/cmd"
+	"github.com/sudarshan032/claude-booths/log"
 	"io"
 	"os"
 	"os/exec"

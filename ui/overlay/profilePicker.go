@@ -1,7 +1,7 @@
 package overlay
 
 import (
-	"claude-booths/config"
+	"github.com/sudarshan032/claude-booths/config"
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"

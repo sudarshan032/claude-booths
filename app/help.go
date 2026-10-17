@@ -1,12 +1,12 @@
 package app
 
 import (
-	"claude-booths/log"
-	"claude-booths/session"
-	"claude-booths/ui"
-	"claude-booths/ui/overlay"
-	"claude-booths/ui/theme"
 	"fmt"
+	"github.com/sudarshan032/claude-booths/log"
+	"github.com/sudarshan032/claude-booths/session"
+	"github.com/sudarshan032/claude-booths/ui"
+	"github.com/sudarshan032/claude-booths/ui/overlay"
+	"github.com/sudarshan032/claude-booths/ui/theme"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"

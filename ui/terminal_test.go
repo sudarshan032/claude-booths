@@ -1,11 +1,11 @@
 package ui
 
 import (
-	"claude-booths/cmd/cmd_test"
-	"claude-booths/log"
-	"claude-booths/session"
-	"claude-booths/session/tmux"
 	"fmt"
+	"github.com/sudarshan032/claude-booths/cmd/cmd_test"
+	"github.com/sudarshan032/claude-booths/log"
+	"github.com/sudarshan032/claude-booths/session"
+	"github.com/sudarshan032/claude-booths/session/tmux"
 	"os/exec"
 	"strings"
 	"testing"

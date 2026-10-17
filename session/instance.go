@@ -1,10 +1,10 @@
 package session
 
 import (
-	"claude-booths/log"
-	"claude-booths/session/git"
-	"claude-booths/session/tmux"
 	"errors"
+	"github.com/sudarshan032/claude-booths/log"
+	"github.com/sudarshan032/claude-booths/session/git"
+	"github.com/sudarshan032/claude-booths/session/tmux"
 	"path/filepath"
 
 	"fmt"

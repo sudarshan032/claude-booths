@@ -1,18 +1,18 @@
 package main
 
 import (
-	"claude-booths/app"
-	cmd2 "claude-booths/cmd"
-	"claude-booths/config"
-	"claude-booths/daemon"
-	"claude-booths/log"
-	"claude-booths/session"
-	"claude-booths/session/git"
-	"claude-booths/session/tmux"
-	"claude-booths/ui/theme"
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/sudarshan032/claude-booths/app"
+	cmd2 "github.com/sudarshan032/claude-booths/cmd"
+	"github.com/sudarshan032/claude-booths/config"
+	"github.com/sudarshan032/claude-booths/daemon"
+	"github.com/sudarshan032/claude-booths/log"
+	"github.com/sudarshan032/claude-booths/session"
+	"github.com/sudarshan032/claude-booths/session/git"
+	"github.com/sudarshan032/claude-booths/session/tmux"
+	"github.com/sudarshan032/claude-booths/ui/theme"
 	"os"
 	"path/filepath"
 

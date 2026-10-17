@@ -1,10 +1,10 @@
 package session
 
 import (
-	"claude-booths/config"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/sudarshan032/claude-booths/config"
 	"time"
 )
 

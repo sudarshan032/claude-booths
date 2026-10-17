@@ -1,7 +1,7 @@
 package ui
 
 import (
-	"claude-booths/session"
+	"github.com/sudarshan032/claude-booths/session"
 	"testing"
 
 	"github.com/charmbracelet/bubbles/spinner"
