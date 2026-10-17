@@ -1,9 +1,9 @@
 package ui
 
 import (
-	"claude-booths/session"
-	"claude-booths/ui/theme"
 	"fmt"
+	"github.com/sudarshan032/claude-booths/session"
+	"github.com/sudarshan032/claude-booths/ui/theme"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/viewport"

@@ -1,9 +1,9 @@
 package config
 
 import (
-	"claude-booths/log"
 	"encoding/json"
 	"fmt"
+	"github.com/sudarshan032/claude-booths/log"
 	"os"
 	"os/exec"
 	"os/user"

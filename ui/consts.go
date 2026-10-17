@@ -1,7 +1,7 @@
 package ui
 
 import (
-	"claude-booths/ui/theme"
+	"github.com/sudarshan032/claude-booths/ui/theme"
 	"strings"
 
 	"github.com/charmbracelet/lipgloss"

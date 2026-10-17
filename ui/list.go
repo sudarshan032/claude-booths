@@ -1,11 +1,11 @@
 package ui
 
 import (
-	"claude-booths/log"
-	"claude-booths/session"
-	"claude-booths/ui/theme"
 	"errors"
 	"fmt"
+	"github.com/sudarshan032/claude-booths/log"
+	"github.com/sudarshan032/claude-booths/session"
+	"github.com/sudarshan032/claude-booths/ui/theme"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/spinner"

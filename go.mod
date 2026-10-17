@@ -1,4 +1,4 @@
-module claude-booths
+module github.com/sudarshan032/claude-booths
 
 go 1.26.0
 
