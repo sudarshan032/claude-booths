@@ -6,6 +6,17 @@ upstream claude-squad releases.
 
 ## [Unreleased]
 
+## [1.1.1] – 2026-10-17
+
+### Changed
+- Module path is `github.com/sudarshan032/claude-booths`, so
+  `go install github.com/sudarshan032/claude-booths@latest` works. Building needs Go 1.26+.
+- `install.sh` checks the archive against `checksums.txt`, always takes the latest release,
+  suggests gh instead of installing it, and edits your shell profile only after a successful
+  install.
+- Releases come with a GitHub build provenance attestation (`gh attestation verify`).
+- Dependencies: bubbles 1.0, lipgloss 1.1, cobra 1.10.
+
 ### Fixed
 - A Shift+N prompt could be typed before the agent drew anything (Gemini CLI, Aider, a slow
   OpenCode) and was silently lost. claude-booths now waits up to a minute for the agent's
@@ -85,5 +96,6 @@ upstream claude-squad releases.
 - A long branch name ran into the diff stats in the list.
 - Tests no longer touch the real config dir or the default tmux server.
 
-[Unreleased]: https://github.com/sudarshan032/claude-booths/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/sudarshan032/claude-booths/compare/v1.1.1...HEAD
+[1.1.1]: https://github.com/sudarshan032/claude-booths/compare/v1.1.0...v1.1.1
 [1.1.0]: https://github.com/sudarshan032/claude-booths/compare/v1.0.20...v1.1.0
