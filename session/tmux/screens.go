@@ -29,6 +29,11 @@ var startupScreens = []startupScreen{
 	{agent: "Gemini CLI", match: []string{"Do you trust the files in this folder?", "Trust folder ("}, choose: "Trust folder ("},
 	{agent: "Codex", match: []string{"Do you trust the contents of this directory?", "Yes, continue"}, choose: "Yes, continue"},
 	{agent: "Codex", match: []string{"Update available!", "Update now"}, block: "it offers to update itself"},
+	// Sign-in and first-run setup: the user has to do these once, outside any prompt.
+	{agent: "Claude Code", match: []string{"Choose the text style"}, block: "first-run setup; run claude once to finish it"},
+	{agent: "Claude Code", match: []string{"Select login method"}, block: "it needs you to log in"},
+	{agent: "Codex", match: []string{"Sign in with ChatGPT"}, block: "it needs you to sign in (codex login)"},
+	{agent: "Gemini CLI", match: []string{"How would you like to authenticate"}, block: "it needs you to sign in"},
 	{agent: "Aider", match: []string{"Open documentation url for more info?"}, keys: "d\r"},
 	{agent: "Aider", match: []string{"Add .aider* to .gitignore"}, keys: "n\r"},
 	{agent: "Aider", match: []string{"anonymous analytics"}, keys: "n\r"},
@@ -80,8 +85,9 @@ func matchScreen(content string) *startupScreen {
 			return s
 		}
 	}
-	// Any other y/n question still waiting on the last line: don't type a prompt into it.
-	if strings.Contains(last, "(Y)es/(N)o") {
+	// Any other y/n question still waiting on the last line ("(Y)es/(N)o", Amp's
+	// "[(y)es, (n)o]"): don't type a prompt into it.
+	if strings.Contains(strings.ToLower(last), "(y)es") {
 		return &startupScreen{agent: "The agent", block: "it is asking a yes/no question"}
 	}
 	return nil
@@ -106,16 +112,19 @@ var (
 	stablePolls = 4
 )
 
-// waitStable waits until the pane stops changing (or deadline) and returns its content.
+// waitStable waits until the agent has drawn something and the pane stops changing (or
+// deadline), and returns its content. A blank pane doesn't count as settled: agents can take
+// seconds (a minute on a slow VM) before drawing anything, and a prompt typed then is lost.
 func (t *TmuxSession) waitStable(deadline time.Time) string {
 	prev, _ := t.CapturePaneContent()
 	for stable := 0; stable < stablePolls && time.Now().Before(deadline); {
 		time.Sleep(stableEvery)
 		cur, _ := t.CapturePaneContent()
-		if cur == prev {
-			stable++
-		} else {
+		switch {
+		case cur != prev:
 			stable, prev = 0, cur
+		case len(paneBottom(cur, 1)) > 0:
+			stable++
 		}
 	}
 	return prev
@@ -128,6 +137,9 @@ func (t *TmuxSession) HandleStartupScreens(maxWait time.Duration) error {
 	deadline := time.Now().Add(maxWait)
 	for range 8 {
 		content := t.waitStable(deadline)
+		if len(paneBottom(content, 1)) == 0 {
+			return fmt.Errorf("the agent showed nothing within %s", maxWait)
+		}
 		s := matchScreen(content)
 		if s == nil {
 			return nil

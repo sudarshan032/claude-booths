@@ -8,6 +8,7 @@ import (
 
 	"github.com/charmbracelet/bubbles/viewport"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/charmbracelet/x/ansi"
 )
 
 var previewPaneStyle lipgloss.Style
@@ -179,7 +180,10 @@ func (p *PreviewPane) String() string {
 
 	// capture-pane ends every row with \n; trim it so a full pane fits exactly instead of
 	// losing its last row (the agent's input box / status line) to a "..." marker.
-	lines := strings.Split(strings.TrimRight(p.previewState.text, "\n"), "\n")
+	// Wrap first: capture-pane -J joins wrapped rows into lines wider than the pane, which would
+	// otherwise wrap again on render, overflow the pane and push the UI off the screen.
+	text := ansi.Hardwrap(strings.TrimRight(p.previewState.text, "\n"), p.width, true)
+	lines := strings.Split(text, "\n")
 
 	// If taller than the pane, keep the bottom: that's where the agent's live output and prompt are
 	if availableHeight > 0 {
