@@ -11,7 +11,7 @@ that picture, drawn simply: arched booths in indigo, a lamp-amber booth for acti
 
 ## Logo
 
-The o's in "booths" are booths: the first an empty booth, the second lit (a session is working).
+The O's in "BOOTHS" are booths: the first an empty booth, the second lit (a session is working).
 
 | Asset | Use |
 |---|---|
@@ -19,12 +19,14 @@ The o's in "booths" are booths: the first an empty booth, the second lit (a sess
 | `docs/assets/wordmark-dark.svg` | Same, for dark backgrounds |
 | <img src="docs/assets/logo-tile.svg" width="40" alt=""> `docs/assets/logo-tile.svg` (= `logo.svg`) | App icon, favicon, GitHub avatar |
 | Pixel banner (in `ui/logo.go`) | The terminal's big banner on the welcome screen |
-| `❯ claude/b[ ][▮]ths` prompt logo (`ui.PromptLogo`) | Everywhere else in the terminal: booth list title, help, narrow panes |
+| `❯ claude/B[ ][▮]THS` prompt logo (`ui.PromptLogo`) | Everywhere else in the terminal: booth list title, help, narrow panes |
 
-Primary wordmark construction: Geist Black (900) "b ths" with drawn booths, small Geist Mono Bold
-"claude" label above in indigo. Letters keep their natural spacing (−12/1000 em tracking) and each
-booth has 46/1000 em of air on both sides so letters never touch the booths. Glyphs are outlined,
-so the SVGs need no font. Regenerate with `docs/demo/wordmark.py` if the shapes change.
+Primary wordmark construction: light (300), widely spaced Space Grotesk capitals "B  THS" (0.22 em
+tracking, like the sign over a box office) with the O's drawn as booths at cap height: an indigo
+outlined arch (stroke about the light stem) and a solid amber arch with an ink window. Small Geist
+Mono Bold "claude" label above in indigo. Glyphs are outlined, so the SVGs need no font (Space
+Grotesk is only used here, not on the site). Regenerate with `docs/demo/wordmark.py` if the shapes change.
+The terminal draws the same idea in thin 7-row pixel capitals, two columns apart.
 
 - Minimum size: wordmark 96 px wide, tile 16 px. Clear space: the width of one booth on every side.
 - Don't recolor, outline, stretch or rotate; never light the first booth; keep the lamp amber.

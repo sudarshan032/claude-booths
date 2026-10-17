@@ -40,7 +40,7 @@ func TestWelcomeBannerSizeFollowsWidth(t *testing.T) {
 	require.NotContains(t, compact, "████████")
 
 	prompt := plainWelcome(pixelCompactWidth-1, 40, false)
-	require.Contains(t, prompt, "b[ ][▮]ths", "too narrow for pixels: prompt logo")
+	require.Contains(t, prompt, "B[ ][▮]THS", "too narrow for pixels: prompt logo")
 	require.NotContains(t, prompt, "▀")
 }
 
@@ -54,12 +54,12 @@ func TestWelcomeShortShrinksBannerThenDropsKeys(t *testing.T) {
 
 	tiny := renderWelcome(100, 4, "msg", true)
 	require.LessOrEqual(t, lipgloss.Height(tiny), 4)
-	require.Contains(t, ansi.Strip(tiny), "b[ ][▮]ths")
+	require.Contains(t, ansi.Strip(tiny), "B[ ][▮]THS")
 }
 
 func TestPromptLogo(t *testing.T) {
 	require.Equal(t, promptLogoText, ansi.Strip(PromptLogo(true)))
-	require.Equal(t, "❯ b[ ][▮]ths", ansi.Strip(PromptLogo(false)))
+	require.Equal(t, "❯ B[ ][▮]THS", ansi.Strip(PromptLogo(false)))
 }
 
 func TestWelcomeKeysOnlyWhenAsked(t *testing.T) {
