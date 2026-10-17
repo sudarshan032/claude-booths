@@ -1,0 +1,46 @@
+name: Bug report
+description: Something in claude-booths doesn't work as expected.
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What did you do, what did you expect, and what happened instead?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. claude-booths -p codex
+        2. Press N, type a prompt, Enter
+        3. ...
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: claude-booths version
+      description: Output of `claude-booths version`
+    validations:
+      required: true
+  - type: input
+    id: env
+    attributes:
+      label: OS, terminal and tmux version
+      placeholder: macOS 26.1, Ghostty, tmux 3.5a
+    validations:
+      required: true
+  - type: input
+    id: agent
+    attributes:
+      label: Agent and version
+      placeholder: Claude Code 2.1.3
+  - type: textarea
+    id: log
+    attributes:
+      label: Log
+      description: Relevant lines from `$TMPDIR/claudebooths.log` (remove anything private).
+      render: text

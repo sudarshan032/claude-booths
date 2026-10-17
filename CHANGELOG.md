@@ -1,11 +1,12 @@
 # Changelog
 
 All notable changes to Claude Booths. Format: [Keep a Changelog](https://keepachangelog.com/),
-versions: [SemVer](https://semver.org/). Forked from claude-squad v1.0.20.
+versions: [SemVer](https://semver.org/). Forked from claude-squad v1.0.20; tags v1.0.20 and earlier are
+upstream claude-squad releases.
 
-## Unreleased
+## [Unreleased]
 
-## v1.1.0 – 2026-10-17
+## [1.1.0] – 2026-10-17
 
 ### Added
 - Pixel "BOOTHS" banner on the welcome screen (thin, widely spaced capitals; the two O's are
@@ -72,3 +73,6 @@ versions: [SemVer](https://semver.org/). Forked from claude-squad v1.0.20.
 - Preview replaced the pane's last row with `...`.
 - A long branch name ran into the diff stats in the list.
 - Tests no longer touch the real config dir or the default tmux server.
+
+[Unreleased]: https://github.com/sudarshan032/claude-booths/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/sudarshan032/claude-booths/compare/v1.0.20...v1.1.0

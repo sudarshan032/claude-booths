@@ -1,9 +1,14 @@
 # Contributing
 
+Thanks for helping. Bugs and feature ideas go in [issues](https://github.com/sudarshan032/claude-booths/issues/new/choose),
+questions in [discussions](https://github.com/sudarshan032/claude-booths/discussions), and security reports
+privately (see [SECURITY.md](SECURITY.md)). Everyone taking part follows the
+[Code of Conduct](CODE_OF_CONDUCT.md).
+
 ## Setup
 
 ```bash
-git clone git@github.com:sudarshan032/claude-booths.git && cd claude-booths
+git clone https://github.com/sudarshan032/claude-booths.git && cd claude-booths
 go mod download
 go build -o ~/.local/bin/claude-booths .
 ```
@@ -60,6 +65,7 @@ golangci-lint run # v2.5.0, same as CI (config: .golangci.yml)
 
 ## Releases
 
-1. Move `## Unreleased` entries in `CHANGELOG.md` under `## vX.Y.Z – YYYY-MM-DD`.
-2. Bump `version` in `main.go` (or `./bump-version.sh`), commit `chore(release): vX.Y.Z`.
+1. Move `## [Unreleased]` entries in `CHANGELOG.md` under `## [X.Y.Z] – YYYY-MM-DD` and add its
+   compare link at the bottom.
+2. Bump `version` in `main.go`, commit `chore(release): vX.Y.Z`.
 3. `git tag vX.Y.Z && git push origin main vX.Y.Z` — `release.yml` builds a draft release.
